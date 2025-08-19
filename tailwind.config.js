@@ -9,5 +9,8 @@ module.exports = {
   plugins: [
      require('daisyui'),
   ],
+  daisyui: {
+    themes: ["light", "cupcake", "bumblebee", "synthwave", "retro", "valentine", "halloween"],
+  },
 }
 

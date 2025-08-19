@@ -1,15 +1,19 @@
+import { Link } from 'react-router-dom';
 import React from 'react'
 
 export default function Navbar() {
   return (
-    <div className="navbar bg-base-200 shadow-md">
+    <div className="navbar bg-blue-500 text-white shadow-md">
       <div className="flex-1">
-        <a className="btn btn-ghost normal-case text-xl">Heladería</a>
+        <Link to="/" className="btn btn-ghost normal-case text-xl">
+          Heladería
+          </Link>
       </div>
-      <div className="flex-none gap-2">
-        <a className="btn btn-ghost">Dashboard</a>
-        <a className="btn btn-ghost">Sucursales</a>
-        <a className="btn btn-ghost">Cilindros</a>
+      <div className="flex-none gap-2 ">
+        <Link to="/" className="btn btn-ghost">Dashboard</Link>
+        <Link to="/" className="btn btn-ghost">Sucursales</Link>
+        <Link to="/" className="btn btn-ghost">Cilindros</Link>
+        <Link to="/product" className="btn btn-ghost">Productos</Link>
       </div>
     </div>
   );
