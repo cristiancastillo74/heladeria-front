@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getProducts } from '../services/productService';
+import PaginatedTable from '../component/PaginatedTable';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
@@ -28,37 +29,30 @@ const Products = () => {
   return (
     <div className='p-10'>
         <h1 className='text-2xl font-bold mb-4 text-center'>PRODUCTOS</h1>
-        <div className="overflow-x-auto">
-            <table className="table table-zebra max-w-7xl mx-auto border">
-                <thead className='bg-blue-400 text-white'>
-                <tr>
-                    <th>ID</th>
-                    <th>Producto</th>
-                    <th>Categoria</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Bolas Por unidad</th>
-                    <th>Sabor Helado</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                
-                <tbody>
-                        {products.map((product) => (
-                        <tr key={product.id} className="hover:bg-base-300">
-                            <td> {product.id}</td>
-                            <td> {product.name} </td>
-                            <td> {product.category} </td>
-                            <td>$ {product.price}</td>
-                            <td> {product.stock}</td>
-                            <td> {product.ballsPerUnit}</td>
-                            <td> {product.cylinder?.flavor}</td>
-                            <td></td>
-                        </tr>
-                        ))}
-                </tbody>
-            </table>
-        </div>
+        
+        <PaginatedTable
+        columns={['ID', 'PRODUCTO', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
+        data={products}
+        renderRow={(product) => (
+          <tr key={product.id} className="hover:bg-base-300">
+            <td className="text-center">{product.id}</td>
+            <td className="text-center">{product.name}</td>
+            <td className="text-center">{product.category}</td>
+            <td className="text-center">$ {product.price}</td>
+            <td className="text-center">{product.ballsPerUnit}</td>
+            <td>
+              <button className="btn btn-outline btn-warning me-1 btn-sm">Editar</button>
+              <button className="btn btn-outline btn-error ml-1 btn-sm">Eliminar</button>
+            </td>
+          </tr>
+        )}
+        extraAction={
+          <button className="btn btn-outline btn-primary">
+            CREAR PRODUCTO
+          </button>
+        }
+        filasPorPagina={10} 
+      />
     </div>
   );
 };
