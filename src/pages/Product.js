@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { getProducts, createProduct } from '../services/productService';
+import { deleteProduct, getProducts, saveProduct } from '../services/productService';
 import PaginatedTable from '../component/PaginatedTable';
 import { getCategories } from "../services/categoryService";
 
 const Products = () => {
-    const [products, setProducts]     = useState([]);
-    const [loading, setLoading]       = useState(true);
-    const [error, setError]           = useState(null);
-    const [newProduct, setNewProduct] = useState({name: "",category: "",price: "",ballsPerUnit: ""});
-    const [categories, setCategories] = useState([]);
+    const [products, setProducts]               = useState([]);
+    const [loading, setLoading]                 = useState(true);
+    const [error, setError]                     = useState(null);
+    const [categories, setCategories]           = useState([]);
+    const [currentProduct, setCurrentProduct]   = useState({ name: "", category: "", price: "", ballsPerUnit: "" });
+    const [isEditing, setIsEditing]             = useState(false); // false = crear, true = editar
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
+
 
 
     useEffect(() => {
@@ -41,21 +45,52 @@ const Products = () => {
       fetchCategories();
     }, []);
 
-    const handleCreate = async (e) => {
+
+    const openCreateModal = () => {
+      setCurrentProduct({ name: "", category: "", price: "", ballsPerUnit: "" });
+      setIsEditing(false);
+      document.getElementById("product_modal").showModal();
+    };
+
+    const openEditModal = (product) => {
+      setCurrentProduct(product);
+      setIsEditing(true);
+      document.getElementById("product_modal").showModal();
+    };
+
+    const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        await createProduct(newProduct);
-        // refrescar la lista
+        await saveProduct(currentProduct); // tu backend decide si es update o create según tenga id
         const updated = await getProducts();
         setProducts(updated);
-        // cerrar modal
-        document.getElementById("create_product_modal").close();
-        // limpiar formulario
-        setNewProduct({ name: "", category: "", price: "", ballsPerUnit: "" });
+        document.getElementById("product_modal").close();
+        setCurrentProduct({ name: "", category: "", price: "", ballsPerUnit: "" });
       } catch (err) {
-        console.error("Error al crear producto:", err);
+        console.error("Error al guardar producto:", err);
       }
     };
+
+    const openConfirmDelete = (id) => {
+      setConfirmDeleteId(id);
+      document.getElementById("confirm_delete_modal").showModal();
+    };
+
+    const confirmDelete = async () => {
+      try {
+        await deleteProduct(confirmDeleteId);
+        const updated = await getProducts();
+        setProducts(updated);
+        setConfirmDeleteId(null);
+        document.getElementById("confirm_delete_modal").close();
+      } catch (err) {
+        console.error("Error al eliminar producto:", err);
+      }
+    };
+
+
+
+
     
     if(loading) return <p className='text-center mt-10'>Cargando Productos..</p>
     if(error)   return <p className='text-center mt-10 text-red-500'>{error}</p>
@@ -75,14 +110,20 @@ const Products = () => {
             <td className="text-center">$ {product.price}</td>
             <td className="text-center">{product.ballsPerUnit}</td>
             <td>
-              <button className="btn btn-outline btn-warning me-1 btn-sm">Editar</button>
-              <button className="btn btn-outline btn-error ml-1 btn-sm">Eliminar</button>
+              <button className="btn btn-outline btn-warning me-1 btn-sm"
+                onClick={() => openEditModal(product)}>
+                  Editar
+              </button>
+              <button className="btn btn-outline btn-error ml-1 btn-sm"
+              onClick={() => openConfirmDelete(product.id)}>
+                Eliminar
+              </button>
             </td>
           </tr>
         )}
         extraAction={
           <button className="btn btn-outline btn-primary"
-            onClick={() => document.getElementById("create_product_modal").showModal()}
+             onClick={openCreateModal}
           >
             CREAR PRODUCTO
           </button>
@@ -90,53 +131,68 @@ const Products = () => {
         filasPorPagina={10} 
       />
 
-      <dialog id="create_product_modal" className="modal">
+      <dialog id="product_modal" className="modal">
         <div className="modal-box">
-          <h3 className="font-bold text-lg">Nuevo Producto</h3>
-          <form method="dialog" className="mt-4 space-y-3" onSubmit={handleCreate}>
+          <h3 className="font-bold text-lg">{isEditing ? "Editar Producto" : "Nuevo Producto"}</h3>
+          <form method="dialog" className="mt-4 space-y-3" onSubmit={handleSubmit}>
             <input 
               type="text" 
               placeholder="Nombre" 
               className="input input-bordered w-full" 
-              value={newProduct.name}
-              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+              value={currentProduct.name}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, name: e.target.value })}
             />
-            {/* Categoría como SELECT dinámico */}
             <select 
-  className="select select-bordered w-full"
-  value={newProduct.category}
-  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-  required
->
-  <option value="">Seleccione Categoría</option>
-  {categories.map((cat) => (
-    <option key={cat} value={cat}>{cat}</option>
-  ))}
-</select>
+              className="select select-bordered w-full"
+              value={currentProduct.category}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, category: e.target.value })}
+              required
+            >
+              <option value="">Seleccione Categoría</option>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
             <input 
               type="number" 
               placeholder="Precio" 
               className="input input-bordered w-full" 
-              value={newProduct.price}
-              onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+              value={currentProduct.price}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, price: e.target.value })}
             />
             <input 
               type="number" 
               placeholder="Bolas por Unidad" 
               className="input input-bordered w-full" 
-              value={newProduct.ballsPerUnit}
-              onChange={(e) => setNewProduct({ ...newProduct, ballsPerUnit: e.target.value })}
+              value={currentProduct.ballsPerUnit}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, ballsPerUnit: e.target.value })}
             />
 
             <div className="modal-action">
-              <button type="submit" className="btn btn-success">Guardar</button>
-              <button type="button" className="btn" onClick={() => document.getElementById("create_product_modal").close()}>
+              <button type="submit" className="btn btn-success">{isEditing ? "Actualizar" : "Guardar"}</button>
+              <button type="button" className="btn" onClick={() => document.getElementById("product_modal").close()}>
                 Cancelar
               </button>
             </div>
           </form>
         </div>
       </dialog>
+
+      <dialog id="confirm_delete_modal" className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg text-red-500">Confirmar eliminación</h3>
+          <p className="py-4">¿Está seguro de que desea eliminar este producto?</p>
+          <div className="modal-action">
+            <button className="btn btn-error" onClick={confirmDelete}>Eliminar</button>
+            <button className="btn" onClick={() => {
+              setConfirmDeleteId(null);
+              document.getElementById("confirm_delete_modal").close();
+            }}>Cancelar</button>
+          </div>
+        </div>
+</dialog>
+
+
 
     </div>
 

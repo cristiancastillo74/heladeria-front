@@ -14,7 +14,7 @@ export const getProducts = async () => {
 };
 
 //crear producto
-export const createProduct = async (product) => {
+export const saveProduct = async (product) => {
     try{
         const response = await axios.post(API_URL, product);
         return response.data;
@@ -23,4 +23,16 @@ export const createProduct = async (product) => {
         throw error;
     }
 };
+
+//eliminar
+export const deleteProduct = async (id) => {
+  try {
+    await axios.delete(`${API_URL}/${id}`);
+  } catch (error) {
+    console.error("Error al eliminar producto", error);
+    throw error;
+  }
+};
+
+
 
