@@ -21,7 +21,7 @@ const Products = () => {
             try{
                 const data = await getProducts();
                 setProducts(data);
-                console.log(data);
+                //console.log(data);
             } catch (err) {
                 setError('error al obtenre los productos');
                 console.error(err);
@@ -37,7 +37,7 @@ const Products = () => {
       const fetchCategories = async () => {
         try {
           const data = await getCategories();
-          console.log("categorías desde backend:", data);
+          //console.log("categorías desde backend:", data);
           setCategories(data); 
         } catch (err) {
           console.error("Error al obtener categorías:", err);
