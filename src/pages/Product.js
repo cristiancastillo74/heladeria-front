@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { deleteProduct, getProducts, saveProduct } from '../services/productService';
 import PaginatedTable from '../component/PaginatedTable';
 import { getCategories } from "../services/categoryService";
+import { EditIcon, DeleteIcon, SaveIcon} from '../assets/icons';
 
 const Products = () => {
     const [products, setProducts]               = useState([]);
@@ -112,19 +113,22 @@ const Products = () => {
             <td>
               <button className="btn btn-outline btn-warning me-1 btn-sm"
                 onClick={() => openEditModal(product)}>
+                  <EditIcon className="w-5 h-5 text-current " />
                   Editar
               </button>
               <button className="btn btn-outline btn-error ml-1 btn-sm"
               onClick={() => openConfirmDelete(product.id)}>
+                <DeleteIcon className="w-5 h-5 text-current " />
                 Eliminar
               </button>
             </td>
           </tr>
         )}
         extraAction={
-          <button className="btn btn-outline btn-primary"
+          <button className="btn btn-outline btn-primary "
              onClick={openCreateModal}
           >
+            <SaveIcon className="w-5 h-5 text-current " />
             CREAR PRODUCTO
           </button>
         }
