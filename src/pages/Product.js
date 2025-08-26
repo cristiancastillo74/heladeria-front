@@ -89,10 +89,6 @@ const Products = () => {
       }
     };
 
-
-
-
-    
     if(loading) return <p className='text-center mt-10'>Cargando Productos..</p>
     if(error)   return <p className='text-center mt-10 text-red-500'>{error}</p>
 
@@ -194,7 +190,7 @@ const Products = () => {
             }}>Cancelar</button>
           </div>
         </div>
-</dialog>
+      </dialog>
 
 
 

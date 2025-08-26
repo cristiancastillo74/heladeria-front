@@ -12,7 +12,7 @@ export default function Navbar() {
       <div className="flex-none gap-2 ">
         <Link to="/" className="btn btn-ghost">Dashboard</Link>
         <Link to="/" className="btn btn-ghost">Sucursales</Link>
-        <Link to="/" className="btn btn-ghost">Cilindros</Link>
+        <Link to="/cylinder" className="btn btn-ghost">Cilindros</Link>
         <Link to="/product" className="btn btn-ghost">Productos</Link>
       </div>
     </div>
