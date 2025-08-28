@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import { BrowserRouter as Router, Routes, Route  } from 'react-router-dom';
 import Products from './pages/Product';
 import Cylinders from './pages/Cylinders';
+import Expenses from './pages/Expenses';
 
 function App() {
    useEffect(() => {
@@ -17,6 +18,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path='/'         element={<Dashboard/>}/>
+          <Route path='/expenses'  element={<Expenses />}/>
           <Route path='/cylinder'  element={<Cylinders/>}/>
           <Route path='/product'  element={<Products/>}/>
         </Routes>
