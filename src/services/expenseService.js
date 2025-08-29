@@ -12,3 +12,21 @@ export const getExpenses = async () =>{
         throw error;
     }
 };
+
+export const saveExpense = async (expense) => {
+    try{
+        const response = await axios.post(API_URL,expense);
+        return response.data;
+    }catch(error){
+        throw error;
+    }
+}
+
+export const deleteExpense = async (id) =>{
+    try{
+        await axios.delete(`${API_URL}/${id}`);
+    }catch(error){
+        console.log('error al eliminar');
+        throw error;
+    }
+};

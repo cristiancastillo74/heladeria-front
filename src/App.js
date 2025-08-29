@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Routes, Route  } from 'react-router-dom';
 import Products from './pages/Product';
 import Cylinders from './pages/Cylinders';
 import Expenses from './pages/Expenses';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
    useEffect(() => {
@@ -14,16 +15,18 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path='/'         element={<Dashboard/>}/>
-          <Route path='/expenses'  element={<Expenses />}/>
-          <Route path='/cylinder'  element={<Cylinders/>}/>
-          <Route path='/product'  element={<Products/>}/>
-        </Routes>
-      </Layout>
-    </Router>
+     <AuthProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path='/'         element={<Dashboard/>}/>
+            <Route path='/expenses'  element={<Expenses />}/>
+            <Route path='/cylinder'  element={<Cylinders/>}/>
+            <Route path='/product'  element={<Products/>}/>
+          </Routes>
+        </Layout>
+      </Router>
+    </AuthProvider>
   );
 }
 
