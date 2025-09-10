@@ -15,6 +15,7 @@ export default function Navbar() {
         <Link to="/expenses" className="btn btn-ghost">Gastos</Link>
         <Link to="/cylinder" className="btn btn-ghost">Cilindros</Link>
         <Link to="/product" className="btn btn-ghost">Productos</Link>
+        <Link to="/cyInvent" className="btn btn-ghost">Inventario de helados</Link>
       </div>
     </div>
   );

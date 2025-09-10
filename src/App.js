@@ -7,6 +7,7 @@ import Products from './pages/Product';
 import Cylinders from './pages/Cylinders';
 import Expenses from './pages/Expenses';
 import { AuthProvider } from './context/AuthContext';
+import CyInvent from './pages/CyInvent';
 
 function App() {
    useEffect(() => {
@@ -23,6 +24,7 @@ function App() {
             <Route path='/expenses'  element={<Expenses />}/>
             <Route path='/cylinder'  element={<Cylinders/>}/>
             <Route path='/product'  element={<Products/>}/>
+            <Route path='/cyInvent'  element={<CyInvent/>}/>
           </Routes>
         </Layout>
       </Router>
