@@ -22,5 +22,14 @@ export const saveInvent = async (cyInvent) => {
         console.log(error);
         throw error;
     }
+};
 
-}
+//eliminar ciInvent
+export const deleteCyInvent = async (id) => {
+    try{
+        await axios.delete(`${API_URL}/${id}`);
+    }catch(error){
+        console.log(error);
+        throw error;
+    }
+};
