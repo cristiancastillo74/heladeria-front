@@ -11,7 +11,7 @@ export default function Navbar() {
       </div>
       <div className="flex-none gap-2 ">
         <Link to="/" className="btn btn-ghost">Dashboard</Link>
-        <Link to="/" className="btn btn-ghost">Sucursales</Link>
+        <Link to="/sales" className="btn btn-ghost">Registrar Venta</Link>
         <Link to="/expenses" className="btn btn-ghost">Gastos</Link>
         <Link to="/cylinder" className="btn btn-ghost">Cilindros</Link>
         <Link to="/product" className="btn btn-ghost">Productos</Link>
