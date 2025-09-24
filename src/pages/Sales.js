@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { saveSales } from "../services/saleService";
 import { getProducts } from "../services/productService";
+import FlavorModal from "./FlavorModals";
 
 const Sales = () => {
   const [cart, setCart]                       = useState([]);
@@ -9,6 +10,8 @@ const Sales = () => {
   const [loading, setLoading]                 = useState(true);
   const [showModal, setShowModal]             = useState(false);
   const [saleInfo, setSaleInfo]               = useState(null);
+  const [showFlavorModal, setShowFlavorModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
 
 
@@ -31,10 +34,8 @@ const Sales = () => {
   const addToCart = (product) => {
     let sabores = "-";
     if (product.isIceCream) {
-      sabores = prompt("Ingrese el sabor (ej: Fresa, Vainilla):");
-      if (!sabores) return;
-      // cada sabor = producto diferente
-      setCart([...cart, { ...product, sabores, cantidad: 1 }]);
+      setSelectedProduct(product);
+      setShowFlavorModal(true);
     } else {
       // buscar si ya existe en el carrito
       const existingIndex = cart.findIndex((p) => p.name === product.name);
@@ -46,6 +47,15 @@ const Sales = () => {
         setCart([...cart, { ...product, sabores, cantidad: 1 }]);
       }
     }
+  };
+
+  const handleConfirmFlavors = (ballSelections) => {
+    const sabores = ballSelections.map(b => `${b.flavor} (${b.balls})`).join(", ");
+    setCart([
+      ...cart,
+      { ...selectedProduct, cantidad: 1, ballSelections, sabores }
+
+    ]);
   };
 
   const calculateTotal = () => {
@@ -62,14 +72,21 @@ const Sales = () => {
         return;
       }
       const salePayload = {
-        items: cart
-          .filter((item) => !item.isIceCream)
-          .map((item) => ({
-          product: {id : item.id},
-          quantity: item.cantidad,
-        })),
+        items: cart.map((item) => {
+          let base = {
+            product: { id: item.id },
+            quantity: item.cantidad,
+          };
+
+          if (item.isIceCream && item.ballSelections) {
+            base.ballSelections = item.ballSelections;
+          }
+
+          return base;
+        }),
         paymentAmount: paymentFloat,
       };
+
 
       const userId = 1; // ⚠️ reemplazar con el usuario logueado
       const branchId = 1; // ⚠️ reemplazar con la sucursal seleccionada
@@ -190,6 +207,13 @@ const Sales = () => {
         </div>
       )}
 
+      {/* 🔹 Modal de selección de sabores */}
+    <FlavorModal
+      isOpen={showFlavorModal}
+      onClose={() => setShowFlavorModal(false)}
+      onConfirm={handleConfirmFlavors}
+      product={selectedProduct}
+    />
 
     </div>
   );
