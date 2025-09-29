@@ -48,7 +48,7 @@ const Products = () => {
 
 
     const openCreateModal = () => {
-      setCurrentProduct({ name: "", category: "", price: "", ballsPerUnit: "" });
+      setCurrentProduct({ name: "",code: "", category: "", price: "", ballsPerUnit: "" });
       setIsEditing(false);
       document.getElementById("product_modal").showModal();
     };
@@ -66,7 +66,7 @@ const Products = () => {
         const updated = await getProducts();
         setProducts(updated);
         document.getElementById("product_modal").close();
-        setCurrentProduct({ name: "", category: "", price: "", ballsPerUnit: "" });
+        setCurrentProduct({ name: "",code: "", category: "", price: "", ballsPerUnit: "" });
       } catch (err) {
         console.error("Error al guardar producto:", err);
       }
@@ -97,12 +97,13 @@ const Products = () => {
         <h1 className='text-2xl font-bold mb-4 text-center'>PRODUCTOS</h1>
         
         <PaginatedTable
-        columns={['ID', 'PRODUCTO', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
+        columns={['ID', 'PRODUCTO','CODIGO', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
         data={products}
         renderRow={(product) => (
           <tr key={product.id} className="hover:bg-base-300">
             <td className="text-center">{product.id}</td>
             <td className="text-center">{product.name}</td>
+            <td className="text-center">{product.code}</td>
             <td className="text-center">{product.category}</td>
             <td className="text-center">$ {product.price}</td>
             <td className="text-center">{product.ballsPerUnit}</td>
@@ -141,6 +142,13 @@ const Products = () => {
               className="input input-bordered w-full" 
               value={currentProduct.name}
               onChange={(e) => setCurrentProduct({ ...currentProduct, name: e.target.value })}
+            />
+            <input 
+              type="text" 
+              placeholder="Codigo" 
+              className="input input-bordered w-full" 
+              value={currentProduct.code}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, code: e.target.value })}
             />
             <select 
               className="select select-bordered w-full"

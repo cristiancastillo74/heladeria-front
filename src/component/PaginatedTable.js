@@ -18,7 +18,7 @@ const PaginatedTable = ({ columns, data, renderRow, extraAction,filasPorPagina =
       )}
       <table className="table table-zebra max-w-7xl mx-auto border">
         <thead className="bg-blue-400 text-white">
-          <tr>
+          <tr className='text-center'>
             {columns.map((col, idx) => (
               <th key={idx}>{col}</th>
             ))}
