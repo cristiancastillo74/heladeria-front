@@ -13,6 +13,17 @@ export const getCyInvent = async () => {
     }
 }
 
+//obtener solo los cilindors diferentes de vacios
+export const getCyInventDisponiblesCondicional = async () => {
+    try{
+        const result = await axios.get(API_URL+"/buy");
+        return result.data;
+    }catch(error){
+        console.log(error);
+        throw error;
+    }
+}
+
 //crear o editar  un inventario de cilindro
 export const saveInvent = async (cyInvent) => {
     try{

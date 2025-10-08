@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getCyInvent } from "../services/cyInventService";
+import { getCyInventDisponiblesCondicional } from "../services/cyInventService";
 
 const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
   const [cylinders, setCylinders] = useState([]);
@@ -11,7 +11,7 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
     if (isOpen) {
       const fetchCyInvents = async () => {
         try {
-          const data = await getCyInvent();
+          const data = await getCyInventDisponiblesCondicional();
           setCylinders(data);
           setSelections([{ cylinderId: null, balls: 1 }]); // empezamos con un select
         } catch (err) {
