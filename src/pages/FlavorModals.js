@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { getCyInventDisponiblesCondicional } from "../services/cyInventService";
+import { getProInvents } from "../services/proInventService";
+
 
 const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
-  const [cylinders, setCylinders] = useState([]);
-  const [selections, setSelections] = useState([]);
+  const [cylinders, setCylinders]         = useState([]);
+  const [selections, setSelections]       = useState([]);
+  const [proInvents, setProInvents]       = useState([]);
+  const [selectedDepot, setSelectedDepot] = useState(null);
+  
 
   const ballsCount = product?.ballsPerUnit || 1;
+  const isIce = product?.code === 'SE' || product?.code === 'DO' || product?.code === 'TR';
 
   useEffect(() => {
     if (isOpen) {
@@ -22,6 +28,21 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const fetchProInvents = async () =>{
+        try{
+            const data = await getProInvents();
+            const iceCreamCodes = ['BRQ', 'CON', 'V5', 'V8'];
+            const filteredData = data.filter(p => iceCreamCodes.includes(p.product?.code) && p.stock > 0);
+            console.log(filteredData);
+            setProInvents(filteredData);
+        }catch(err){
+            console.log(err);
+        }
+    };
+    fetchProInvents();
+}, []);
+
   const handleFlavorChange = (index, cylinderId, balls = 1) => {
   const newSelections = [...selections];
   newSelections[index] = { cylinderId: parseInt(cylinderId), balls: parseInt(balls) || 1 };
@@ -37,6 +58,10 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
   setSelections(newSelections);
 };
 
+const handleDepotChange = (e) => {
+    setSelectedDepot(e.target.value ? parseInt(e.target.value) : null);
+};
+
 
   const handleConfirm = () => {
   const selected = selections.filter((s) => s.cylinderId !== null);
@@ -47,13 +72,20 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
     return;
   }
 
+  if (isIce && !selectedDepot) {
+      alert("Debes seleccionar un depósito para este producto.");
+      return;
+    }
+
   // agregar el nombre del sabor al objeto para la tabla
   const selectionsWithNames = selected.map(s => ({
     ...s,
     flavor: cylinders.find(c => c.cylinder.id === s.cylinderId)?.cylinder.flavor
   }));
 
-  onConfirm(selectionsWithNames);
+  onConfirm(product, selectionsWithNames, selectedDepot);
+
+
   onClose();
 };
 
@@ -124,9 +156,27 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
                 </div>
 
                 
+                
                 </div>
             );
             })}
+
+            {isIce ? (
+              <div >
+                <select
+                  className="border rounded px-2 py-1 w-full"
+                  value={selectedDepot || ""}
+                  onChange={handleDepotChange}
+                >
+                  <option value="">Seleccionar el deposito</option>
+                  {proInvents.map((p) => (
+                    <option key={p.id} value={p.product.id}>
+                      {p.product.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
 
 
 

@@ -9,7 +9,7 @@ const Products = () => {
     const [loading, setLoading]                 = useState(true);
     const [error, setError]                     = useState(null);
     const [categories, setCategories]           = useState([]);
-    const [currentProduct, setCurrentProduct]   = useState({ name: "", category: "", price: "", ballsPerUnit: "" });
+    const [currentProduct, setCurrentProduct]   = useState({ name: "", category: "", price: "", isIceCream: false, ballsPerUnit: "" });
     const [isEditing, setIsEditing]             = useState(false); // false = crear, true = editar
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
@@ -48,7 +48,7 @@ const Products = () => {
 
 
     const openCreateModal = () => {
-      setCurrentProduct({ name: "",code: "", category: "", price: "", ballsPerUnit: "" });
+      setCurrentProduct({ name: "",code: "", category: "", price: "",isIceCream: false, ballsPerUnit: "" });
       setIsEditing(false);
       document.getElementById("product_modal").showModal();
     };
@@ -97,13 +97,14 @@ const Products = () => {
         <h1 className='text-2xl font-bold mb-4 text-center'>PRODUCTOS</h1>
         
         <PaginatedTable
-        columns={['ID', 'PRODUCTO','CODIGO', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
+        columns={['ID', 'PRODUCTO','CODIGO','¿ES HELADO?', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
         data={products}
         renderRow={(product) => (
           <tr key={product.id} className="hover:bg-base-300">
             <td className="text-center">{product.id}</td>
             <td className="text-center">{product.name}</td>
             <td className="text-center">{product.code}</td>
+            <td className="text-center">{product.isIceCream ? "Sí" : "No"}</td>
             <td className="text-center">{product.category}</td>
             <td className="text-center">$ {product.price}</td>
             <td className="text-center">{product.ballsPerUnit}</td>
@@ -161,6 +162,7 @@ const Products = () => {
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
+
             <input 
               type="number" 
               placeholder="Precio" 
@@ -175,6 +177,13 @@ const Products = () => {
               value={currentProduct.ballsPerUnit}
               onChange={(e) => setCurrentProduct({ ...currentProduct, ballsPerUnit: e.target.value })}
             />
+
+            <input 
+              type="checkbox" 
+              className="checkbox"
+              checked={currentProduct.isIceCream}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, isIceCream: e.target.checked })}
+            /> ¿Es Helado?
 
             <div className="modal-action">
               <button type="submit" className="btn btn-success">{isEditing ? "Actualizar" : "Guardar"}</button>

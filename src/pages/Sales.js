@@ -49,12 +49,11 @@ const Sales = () => {
     }
   };
 
-  const handleConfirmFlavors = (ballSelections) => {
+  const handleConfirmFlavors = (product, ballSelections, depotId) => {
     const sabores = ballSelections.map(b => `${b.flavor} (${b.balls})`).join(", ");
     setCart([
       ...cart,
-      { ...selectedProduct, cantidad: 1, ballSelections, sabores }
-
+      { ...product, cantidad: 1, ballSelections, sabores, depotId }
     ]);
   };
 
@@ -148,6 +147,7 @@ const Sales = () => {
           <tr>
             <th className="border p-2">Producto</th>
             <th className="border p-2">Sabores</th>
+            <th className="border p-2">Depósito</th>
             <th className="border p-2">Cantidad</th>
             <th className="border p-2">Precio U</th>
             <th className="border p-2">Subtotal</th>
@@ -158,6 +158,7 @@ const Sales = () => {
             <tr key={idx}>
               <td className="border p-2">{item.name}</td>
               <td className="border p-2">{item.sabores}</td>
+              <td>{item.depotId || "-"}</td> 
               <td className="border p-2">{item.cantidad}</td>
               <td className="border p-2">${item.price.toFixed(2)}</td>
               <td className="border p-2">
