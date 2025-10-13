@@ -49,11 +49,11 @@ const Sales = () => {
     }
   };
 
-  const handleConfirmFlavors = (product, ballSelections, depotId) => {
+  const handleConfirmFlavors = (product, ballSelections, depot) => {
     const sabores = ballSelections.map(b => `${b.flavor} (${b.balls})`).join(", ");
     setCart([
       ...cart,
-      { ...product, cantidad: 1, ballSelections, sabores, depotId }
+      { ...product, cantidad: 1, ballSelections, sabores, depotId: depot?.id || null, depotName: depot?.name || '' }
     ]);
   };
 
@@ -71,7 +71,7 @@ const Sales = () => {
         return;
       }
       const salePayload = {
-        items: cart.map((item) => {
+        items: cart.flatMap((item) => {
           let base = {
             product: { id: item.id },
             quantity: item.cantidad,
@@ -79,6 +79,11 @@ const Sales = () => {
 
           if (item.isIceCream && item.ballSelections) {
             base.ballSelections = item.ballSelections;
+          }
+
+          if(item.isIceCream && item.depotId){
+            const depotItem = { product: { id: item.depotId }, quantity: 1 };
+            return [base, depotItem];
           }
 
           return base;
@@ -158,7 +163,7 @@ const Sales = () => {
             <tr key={idx}>
               <td className="border p-2">{item.name}</td>
               <td className="border p-2">{item.sabores}</td>
-              <td>{item.depotId || "-"}</td> 
+              <td>{item.depotName || '—'}</td>
               <td className="border p-2">{item.cantidad}</td>
               <td className="border p-2">${item.price.toFixed(2)}</td>
               <td className="border p-2">

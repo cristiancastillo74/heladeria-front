@@ -83,7 +83,13 @@ const handleDepotChange = (e) => {
     flavor: cylinders.find(c => c.cylinder.id === s.cylinderId)?.cylinder.flavor
   }));
 
-  onConfirm(product, selectionsWithNames, selectedDepot);
+  const selectedDepotObj = proInvents.find(p => p.product.id === selectedDepot);
+
+
+  onConfirm(product, selectionsWithNames, {
+    id: selectedDepot,
+    name: selectedDepotObj?.product.name || ''
+  });
 
 
   onClose();
