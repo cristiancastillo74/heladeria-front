@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import CyInvent from './pages/CyInvent';
 import Sales from './pages/Sales';
 import ProInvent from './pages/ProInvent';
+import SalesReport from './pages/SalesReport';
 
 function App() {
    useEffect(() => {
@@ -22,7 +23,7 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route path='/'           element={<Dashboard/>}/>
+            <Route path='/reports/sales' element={<SalesReport/>}/>
             <Route path='/expenses'   element={<Expenses/>}/>
             <Route path='/cylinder'   element={<Cylinders/>}/>
             <Route path='/product'    element={<Products/>}/>

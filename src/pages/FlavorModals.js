@@ -18,6 +18,8 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
       const fetchCyInvents = async () => {
         try {
           const data = await getCyInventDisponiblesCondicional();
+          //console.log('Cilindros disponibles:');
+          //console.log(data);
           setCylinders(data);
           setSelections([{ cylinderId: null, balls: 1 }]); // empezamos con un select
         } catch (err) {
@@ -114,17 +116,17 @@ const handleDepotChange = (e) => {
                 <label  className="block text-sm font-medium mb-1 invisible">
                     pla
                 </label>
-                {selections.length > 1 && (
-                    <button
-                    className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                    onClick={() => {
-                        const newSelections = selections.filter((_, i) => i !== index);
-                        setSelections(newSelections);
-                    }}
-                    >
-                    &times;
-                    </button>
-                )}
+                  {selections.length > 1 && (
+                      <button
+                      className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                      onClick={() => {
+                          const newSelections = selections.filter((_, i) => i !== index);
+                          setSelections(newSelections);
+                      }}
+                      >
+                      &times;
+                      </button>
+                  )}
                 </div>
 
                 <div className="flex-1">
@@ -140,8 +142,8 @@ const handleDepotChange = (e) => {
                     >
                     <option value="">-- Seleccionar sabor --</option>
                     {cylinders.map((c) => (
-                        <option key={c.id} value={c.cylinder.id}>
-                        {c.cylinder.flavor}
+                        <option key={c.id} value={c.id}>
+                        {c.cylinder.flavor} 
                         </option>
                     ))}
                     </select>

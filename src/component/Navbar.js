@@ -10,7 +10,7 @@ export default function Navbar() {
           </Link>
       </div>
       <div className="flex-none gap-2 ">
-        <Link to="/" className="btn btn-ghost">Dashboard</Link>
+        <Link to="/reports/sales" className="btn btn-ghost">Reporte de Ventas</Link>
         <Link to="/sales" className="btn btn-ghost">Registrar Venta</Link>
         <Link to="/expenses" className="btn btn-ghost">Gastos</Link>
         <Link to="/cylinder" className="btn btn-ghost">Cilindros</Link>

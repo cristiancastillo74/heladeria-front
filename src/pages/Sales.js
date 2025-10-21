@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { saveSales } from "../services/saleService";
 import { getProducts } from "../services/productService";
 import FlavorModal from "./FlavorModals";
+import { getProInvents } from "../services/proInventService";
 
 const Sales = () => {
   const [cart, setCart]                       = useState([]);
   const [products, setProducts]               = useState([]);
+  const [InvProducts, setInvProducts]         = useState([]);
   const [error, setError]                     = useState(null);
   const [loading, setLoading]                 = useState(true);
   const [showModal, setShowModal]             = useState(false);
@@ -29,6 +31,22 @@ const Sales = () => {
       }
     };
     fetchProducts();
+  },[]);
+
+  useEffect(() => {
+    const fetchInvProducts = async () => {
+      try{
+        const dat = await getProInvents();
+        const data = dat.filter(p => p.stock > 0);
+        setInvProducts(data);
+      }catch(err){
+        setError('error al obtener Productos con inventarios');
+        console.error(err);
+      } finally{
+        setLoading(false);
+      }
+    };
+    fetchInvProducts();
   },[]);
 
   const addToCart = (product) => {
@@ -82,7 +100,7 @@ const Sales = () => {
           }
 
           if(item.isIceCream && item.depotId){
-            const depotItem = { product: { id: item.depotId }, quantity: 1 };
+            const depotItem = { product: { id: item.depotId }, quantity: 1, ignorePrice: true,};
             return [base, depotItem];
           }
 
@@ -134,14 +152,14 @@ const Sales = () => {
 
       {/* Botones de otros productos */}
       <div className="flex gap-2 flex-wrap mb-6">
-        {products.map((p) => (
-          !p.isIceCream && (
+        {InvProducts.map((p) => (
+          !p.product.isIceCream && (
             <button
-              key={p.name}
+              key={p.product.name}
               className="px-4 py-2 bg-yellow-600 text-white rounded-lg"
-              onClick={() => addToCart(p)}
+              onClick={() => addToCart(p.product)}
             >
-              {p.name}
+              {p.product.name}
             </button>
         )))}
       </div>
