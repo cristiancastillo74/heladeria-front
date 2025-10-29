@@ -3,6 +3,8 @@ import axios from "axios";
 import * as XLSX from "xlsx"; // Importa xlsx
 import { jsPDF } from 'jspdf';  // Importar jsPDF correctamente
 import 'jspdf-autotable';       // Importar autoTable
+import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
+import { ExcelIcon, PdfIcon } from "../assets/icons";
 
 
 export default function SalesReport() {
@@ -62,60 +64,136 @@ export default function SalesReport() {
     fetchReport();
   }, [currentPage]); // Vuelve a cargar los datos cada vez que cambia la página
 
-  // Función para exportar a PDF
-const exportToPDF = () => {
-  const doc = new jsPDF();
 
-  const allData = [];
-  let totalAmount = 0;  // Variable para almacenar el total de todas las ventas
 
-  const totalPages = Math.ceil(data.totalElements / itemsPerPage);
+const exportToPDF = async () => {
+  console.log("Generando PDF...");
 
-  for (let page = 0; page < totalPages; page++) {
-    axios.get("http://localhost:8080/api/reports/sales", {
-      params: {
-        startDate,
-        endDate,
-        page,
-        size: itemsPerPage,
-      }
-    }).then(res => {
-      const rows = res.data.content.map(row => {
-        const rowData = [
+  if (!data.totalElements || data.totalElements === 0) {
+    alert("No hay datos para exportar.");
+    return;
+  }
+
+  try {
+    const doc = new jsPDF("p", "mm", "a4");
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // === Convertir imagen importada a Base64 ===
+    const getBase64Image = (imgSrc) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = imgSrc;
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const dataURL = canvas.toDataURL("image/png");
+          resolve(dataURL);
+        };
+        img.onerror = (err) => reject(err);
+      });
+    };
+
+    // === Agregar logo ===
+    try {
+      const logoBase64 = await getBase64Image(logo);
+      doc.addImage(logoBase64, "PNG", 15, 10, 25, 25); // (x, y, width, height)
+    } catch (err) {
+      console.warn("⚠️ No se pudo cargar el logo:", err);
+    }
+
+    // === Encabezado ===
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Reporte de Ventas", pageWidth / 2, 20, { align: "center" });
+    
+    // === Obtener el nombre del establecimiento (branch) del primer registro ===
+    const firstBranch = data.content && data.content.length > 0 ? data.content[0].branch : "Sucursal no especificada";
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text(firstBranch, pageWidth / 2, 26, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`Periodo: ${startDate} a ${endDate}`, pageWidth / 2, 32, {
+      align: "center",
+    });
+
+    doc.setDrawColor(100);
+    doc.line(10, 35, pageWidth - 10, 35);
+
+    // === Datos ===
+    const allData = [];
+    let totalAmountSum = 0;
+    const totalPages = Math.ceil(data.totalElements / itemsPerPage);
+
+    const requests = Array.from({ length: totalPages }, (_, page) =>
+      axios.get("http://localhost:8080/api/reports/sales", {
+        params: { startDate, endDate, page, size: itemsPerPage },
+      })
+    );
+
+    const responses = await Promise.all(requests);
+
+    responses.forEach((res) => {
+      res.data.content.forEach((row) => {
+        allData.push([
           row.date,
           row.product,
           row.quantity,
           row.branch,
           row.user,
-          row.total.toFixed(2),
-        ];
-
-        totalAmount += row.total;  // Acumulamos el total de las ventas
-
-        return rowData;
-      });
-
-      allData.push(...rows);
-
-      if (allData.length >= data.totalElements) {
-        // Ordenamos los datos por la fecha (de forma ascendente)
-        allData.sort((a, b) => new Date(a[0]) - new Date(b[0]));  // Asegúrate de que a[0] sea la fecha
-
-        // Añadimos el total como una fila adicional al final
-        allData.push([
-          'TOTAL', '', '','','', `$${totalAmount.toFixed(2)}`, 
+          `$${row.total.toFixed(2)}`,
         ]);
+        totalAmountSum += row.total;
+      });
+    });
 
-        doc.autoTable({
-          head: [['Fecha', 'Producto', 'Cantidad', 'Sucursal', 'Usuario', 'Total']],
-          body: allData,
-        });
+    allData.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+    allData.push(["TOTAL", "", "", "", "", `$${totalAmountSum.toFixed(2)}`]);
 
-        doc.save('reporte_ventas.pdf');
-      }
-    }).catch(err => console.error('Error fetching data for page ' + page, err));
+    doc.autoTable({
+      startY: 40,
+      head: [["Fecha", "Producto", "Cantidad", "Sucursal", "Usuario", "Total"]],
+      body: allData,
+      styles: { fontSize: 9, halign: "center", valign: "middle" },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      theme: "grid",
+    });
+
+    // === Pie de página ===
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        pageWidth - 20,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: "right" }
+      );
+      doc.text(
+        "Generado automáticamente por el sistema de ventas",
+        15,
+        doc.internal.pageSize.getHeight() - 10
+      );
+    }
+
+    // === Guardar PDF ===
+    doc.save(`reporte_ventas_${startDate}_a_${endDate}.pdf`);
+    console.log("✅ PDF generado correctamente.");
+  } catch (err) {
+    console.error("❌ Error al generar PDF:", err);
+    alert("Ocurrió un error al generar el PDF. Ver consola para más detalles.");
   }
 };
+
+
 
 
 
@@ -251,8 +329,12 @@ const exportToPDF = () => {
 
       {/* Botones de exportación */}
       <div className="flex justify-between mt-6">
-        <button onClick={exportToPDF} className="btn btn-success">Exportar a PDF</button>
-        <button onClick={exportToExcel} className="btn btn-success">Exportar a Excel</button>
+        <button className="btn btn-outline btn-error" onClick={exportToPDF}>
+          <PdfIcon className="w-5 h-5 text-current " />
+          Exportar a PDF</button>
+        <button className='btn btn-outline btn-success' onClick={exportToExcel}>
+          <ExcelIcon className="w-5 h-5 text-current " />
+         Exportar a Excel </button>
       </div>
     </div>
   );
