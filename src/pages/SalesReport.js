@@ -8,10 +8,22 @@ import { ExcelIcon, PdfIcon } from "../assets/icons";
 
 
 export default function SalesReport() {
+
+  // Obtener fecha actual
+  const today = new Date();
+  // Primer día del mes actual
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const formatForInput = (date) => {
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Mes 0-11
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+  };
+
   const [data, setData] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [startDate, setStartDate] = useState("2025-10-01");
-  const [endDate, setEndDate] = useState("2025-10-21");
+  const [startDate, setStartDate] = useState(formatForInput(firstDayOfMonth));
+  const [endDate, setEndDate] = useState(formatForInput(today));
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);

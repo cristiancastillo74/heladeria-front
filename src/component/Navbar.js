@@ -27,7 +27,10 @@ export default function Navbar() {
               <Link to="/reports/balance">Balance Mensual</Link>
             </li>
             <li>
-              <Link to="/reports/sales/monthly">Reporte Mensual</Link>
+              <Link to="/reports/products">Inventario de Productos</Link>
+            </li>
+            <li>
+              <Link to="/reports/cylinders">Inventario de Helados</Link>
             </li>
           </ul>
         </div>
