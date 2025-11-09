@@ -9,8 +9,21 @@ import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { PdfIcon } from "../assets/icons";
 
 export default function BalanceReport() {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+
+  // Obtener fecha actual
+  const today = new Date();
+  // Primer día del mes actual
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  const formatForInput = (date) => {
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // Mes 0-11
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+  };
+
+
+  const [startDate, setStartDate] = useState(formatForInput(firstDayOfMonth));
+  const [endDate, setEndDate] = useState(formatForInput(today));
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
 
