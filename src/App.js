@@ -11,6 +11,7 @@ import CyInvent from './pages/CyInvent';
 import Sales from './pages/Sales';
 import ProInvent from './pages/ProInvent';
 import SalesReport from './pages/SalesReport';
+import BalanceReport from './pages/BalanceReport';
 
 function App() {
    useEffect(() => {
@@ -24,6 +25,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path='/reports/sales' element={<SalesReport/>}/>
+            <Route path='/reports/balance' element={<BalanceReport/>}/>
             <Route path='/expenses'   element={<Expenses/>}/>
             <Route path='/cylinder'   element={<Cylinders/>}/>
             <Route path='/product'    element={<Products/>}/>

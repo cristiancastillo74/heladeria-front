@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { deleteCyInvent, getCyInvent, saveInvent } from '../services/cyInventService';
 import PaginatedTable from '../component/PaginatedTable';
-import { DeleteIcon, EditIcon, SaveIcon } from '../assets/icons';
+import { AddIcon, DeleteIcon, EditIcon, SaveIcon } from '../assets/icons';
 import { getStatus } from '../services/statusService';
 import { getCylinder } from '../services/cylinderService';
 import { useAuth } from '../context/AuthContext';
@@ -143,7 +143,7 @@ import { useAuth } from '../context/AuthContext';
           <button className="btn btn-outline btn-primary "
           onClick={openCreateModal}
           >
-            <SaveIcon className="w-5 h-5 text-current " />
+            <AddIcon className="w-5 h-5 text-current " />
             Registrar Inventario
           </button>
         }

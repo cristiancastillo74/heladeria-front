@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { deleteProduct, getProducts, saveProduct } from '../services/productService';
 import PaginatedTable from '../component/PaginatedTable';
 import { getCategories } from "../services/categoryService";
-import { EditIcon, DeleteIcon, SaveIcon} from '../assets/icons';
+import { EditIcon, DeleteIcon, SaveIcon, AddIcon} from '../assets/icons';
 
 const Products = () => {
     const [products, setProducts]               = useState([]);
@@ -126,7 +126,7 @@ const Products = () => {
           <button className="btn btn-outline btn-primary "
              onClick={openCreateModal}
           >
-            <SaveIcon className="w-5 h-5 text-current " />
+            <AddIcon className="w-5 h-5 text-current " />
             CREAR PRODUCTO
           </button>
         }

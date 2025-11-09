@@ -29,4 +29,14 @@ export const deleteExpense = async (id) =>{
         console.log('error al eliminar');
         throw error;
     }
+}
+
+export const getTypeExpenses = async () =>{
+    try{
+        const response = await axios.get(`${API_URL}/typeExpenses`);
+        return response.data;
+    }catch(error){
+        console.log('error al obtener los tipos de gastos');
+        throw error;
+    }
 };

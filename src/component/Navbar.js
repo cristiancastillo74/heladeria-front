@@ -24,7 +24,7 @@ export default function Navbar() {
               <Link to="/reports/sales">Reporte de ventas</Link>
             </li>
             <li>
-              <Link to="/reports/sales/weekly">Reporte Semanal</Link>
+              <Link to="/reports/balance">Balance Mensual</Link>
             </li>
             <li>
               <Link to="/reports/sales/monthly">Reporte Mensual</Link>

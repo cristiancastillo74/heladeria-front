@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { deleteExpense, getExpenses, saveExpense } from '../services/expenseService';
+import { deleteExpense, getExpenses, getTypeExpenses, saveExpense } from '../services/expenseService';
 import PaginatedTable from '../component/PaginatedTable';
-import { DeleteIcon, SaveIcon } from '../assets/icons';
+import { AddIcon, DeleteIcon, SaveIcon } from '../assets/icons';
 import { useAuth } from '../context/AuthContext';
 
 const Expenses = () => {
-    const [expense,     setExpense]                 = useState([]);
-    const [isLoading, setIsLoading]                 = useState(true);
-    const [isError,     setIsError]                 = useState(null);
-    const [confirmDeleteId, setconfirmDeleteId]     = useState(null);
-    const [confirmDeleteDesc, setConfirmDeleteDesc] = useState('');
-    const [currentExpense, setCurrentExpense]       = useState({descripcion:'', amount:0, user:null, branch:null});
-    const [isEditing, setIsEditing]                 = useState(false);
-    const { currentUser, currentBranch }            = useAuth();
-    //const [isEditing, setIsEditing]         = useState(false);
+    const [expense,     setExpense]                     = useState([]);
+    const [isLoading, setIsLoading]                     = useState(true);
+    const [isError,     setIsError]                     = useState(null);
+    const [confirmDeleteId, setconfirmDeleteId]         = useState(null);
+    const [confirmDeleteDesc, setConfirmDeleteDesc]     = useState('');
+    const [currentExpense, setCurrentExpense]           = useState({descripcion:'', amount:0, user:null, branch:null});
+    const [isEditing, setIsEditing]                     = useState(false);
+    const { currentUser, currentBranch }                = useAuth();
+    const [typeExpenseOptions, setTypeExpenseOptions]   = useState([]);
 
     useEffect(() => {
         const fetchExpenses = async () =>{
@@ -30,6 +30,20 @@ const Expenses = () => {
         };
         fetchExpenses();
     },[]);
+
+    useEffect(() => {
+          const fetchTypeExpenses = async () =>{
+            try{
+              const data = await getTypeExpenses();
+              setTypeExpenseOptions(data);
+              //console.log(data);
+            }catch(err){
+              setIsError("error");
+              console.log(err);
+            }
+          };
+          fetchTypeExpenses();
+        }, []);
 
     const openCreateModal = () => {
         setCurrentExpense({descripcion:'', amount:0, user: currentUser,branch: currentBranch});
@@ -74,13 +88,14 @@ const Expenses = () => {
     <div className='p-10'>
         <h1 className='text-2xl font-bold mb-4 text-center'>Registro de gastos</h1>
         <PaginatedTable
-            columns={['ID','GASTO','MONTO','QUIEN REALIZO EL GASTO','FECHA registro','FECHA modificacion','ACCIONES']}
+            columns={['ID','GASTO','MONTO', 'TIPO','QUIEN REALIZO EL GASTO','FECHA registro','FECHA modificacion','ACCIONES']}
             data={expense}
             renderRow={(ex) => (
                 <tr key={ex.id} className='hover:bg-base-300'>
                     <td className='text-center'>{ex.id}</td>
                     <td className='text-center'>{ex.descripcion}</td>
                     <td className='text-center'>{ex.amount}</td>
+                    <td className='text-center'>{ex.typeExpense}</td>
                     <td className='text-center'>{ex.user.firstName} {ex.user.lastName}</td>
                     <td className='text-center'>{ex.createdAt}</td>
                     <td className='text-center'>{ex.updatedAt}</td>
@@ -96,7 +111,7 @@ const Expenses = () => {
             extraAction={
                 <button className='btn btn-outline btn-primary'
                 onClick={openCreateModal}>
-                    <SaveIcon className="w-5 h-5 text-current "/>
+                    <AddIcon className="w-5 h-5 text-current " />
                     Registrar Gasto
                 </button>
             }
@@ -113,7 +128,21 @@ const Expenses = () => {
                         className='input input-bordered w-full'
                         value={currentExpense.descripcion}
                         onChange={(e) => setCurrentExpense({...currentExpense, descripcion: e.target.value})}/>
-                    
+                        
+                    <select
+                    className="select select-bordered w-full"
+                    value={currentExpense.typeExpense}
+                    onChange={(e) =>
+                        setCurrentExpense({ ...currentExpense, typeExpense: e.target.value })
+                    }>
+                    <option value="">-- Selecciona un tipo de gasto --</option>
+                    {typeExpenseOptions.map((type) => (
+                        <option key={type} value={type}>
+                        {type}
+                        </option>
+                    ))}
+                    </select>
+
                     <input
                     type='number'
                     placeholder='Monto del gasto'

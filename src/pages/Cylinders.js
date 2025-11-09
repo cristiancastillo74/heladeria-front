@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { deleteCylinder, getCylinder, saveCylinder } from '../services/cylinderService';
 import PaginatedTable from '../component/PaginatedTable';
-import { DeleteIcon, EditIcon, SaveIcon } from '../assets/icons';
+import { AddIcon, DeleteIcon, EditIcon, SaveIcon } from '../assets/icons';
 
 const Cylinders = () => {
     const [cylinders, setCylinders]             = useState([]);
@@ -103,7 +103,7 @@ const Cylinders = () => {
             <button className="btn btn-outline btn-primary "
                 onClick={openCreateModal}
             >
-                <SaveIcon className="w-5 h-5 text-current " />
+                <AddIcon className="w-5 h-5 text-current " />
                 CREAR CILINDRO
             </button>
             }
