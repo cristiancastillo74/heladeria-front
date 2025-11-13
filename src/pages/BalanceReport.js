@@ -7,6 +7,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { PdfIcon } from "../assets/icons";
+import { getBalanceReport } from "../services/balanceService";
 
 export default function BalanceReport() {
 
@@ -35,10 +36,7 @@ export default function BalanceReport() {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/reports/balance?startDate=${startDate}&endDate=${endDate}`
-      );
-      const data = await response.json();
+      const data = await getBalanceReport(startDate, endDate);
       setReport(data);
     } catch (error) {
       console.error(error);

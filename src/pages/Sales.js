@@ -199,7 +199,7 @@ const Sales = () => {
 
       {/* Botón guardar */}
       <button
-        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg"
+        className="btn btn-outline btn-primary mt-4 px-6 py-2 "
         onClick={handleSaveSale}
       >
         Guardar Venta

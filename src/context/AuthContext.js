@@ -1,51 +1,38 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState } from 'react';
-
-// Usuario y sucursal de prueba (quemados)
-const dummyUser = {
-  idUser: 1,
-  firstName: 'MARIA',
-  lastName: 'MENJIVAR',
-  dui: '04876875-7',
-  phone: '1234-1234',
-  address: 'S.S.',
-  salary: 300.0,
-  workDays: '30',
-  username: 'mmenjivar',
-  password: '123123',
-  role: 'EMPLOYEE',
-  branch: {
-    id: 1,
-    name: 'Opico',
-    location: 'S.S.',
-    phone: '2222-2222',
-    createdAt: null
-  },
-  createdAt: null,
-  updatedAt: null
-};
-
-const dummyBranch = dummyUser.branch;
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(dummyUser);
-  const [currentBranch, setCurrentBranch] = useState(dummyBranch);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [token, setToken] = useState(null);
 
-  // Login y logout están listos para cuando los uses realmente
-  const login = (userData, branchData) => {
+  // Recuperar usuario/token de localStorage al iniciar la app
+  useEffect(() => {
+    const storedUser = localStorage.getItem("currentUser");
+    const storedToken = localStorage.getItem("token");
+    if (storedUser && storedToken) {
+      setCurrentUser(JSON.parse(storedUser));
+      setToken(storedToken);
+    }
+  }, []);
+
+  const login = (userData, jwtToken) => {
     setCurrentUser(userData);
-    setCurrentBranch(branchData);
+    setToken(jwtToken);
+    localStorage.setItem("currentUser", JSON.stringify(userData));
+    localStorage.setItem("token", jwtToken);
   };
 
   const logout = () => {
     setCurrentUser(null);
-    setCurrentBranch(null);
+    setToken(null);
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("token");
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, currentBranch, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

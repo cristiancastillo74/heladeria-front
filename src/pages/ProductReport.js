@@ -5,13 +5,12 @@ import { jsPDF } from 'jspdf';  // Importar jsPDF correctamente
 import 'jspdf-autotable';       // Importar autoTable
 import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { ExcelIcon, PdfIcon } from "../assets/icons";
+import { fetchProductReport } from "../services/productService";
 
 
 export default function ProductReport() {
   const [data, setData]                 = useState([]);
   const [totalAmount, setTotalAmount]   = useState(0);
-  //const [startDate, setStartDate]       = useState("2025-10-01");
-  //const [endDate, setEndDate]           = useState("2025-10-21");
   // Paginación
   const [currentPage, setCurrentPage]   = useState(1);
   const itemsPerPage                    = 10;
@@ -36,20 +35,19 @@ export default function ProductReport() {
 
   const totalPages = Math.ceil((data.length || 0) / itemsPerPage);
 
-  const fetchReport = async () => {
-  try {
-    const res = await axios.get("http://localhost:8080/api/reports/inventory/products");
-    console.log("✅ Datos recibidos:", res.data);
-    setData(res.data); // res.data es un array
-  } catch (err) {
-    console.error("Error fetching report", err);
-  }
-};
-
 
   useEffect(() => {
+    const fetchReport = async () => {
+      try { 
+        const data = await fetchProductReport();
+        setData(data);
+      } catch (error) {
+        console.error("Error fetching product report", error);
+      }
+    };
+
     fetchReport();
-  }, [currentPage]); // Vuelve a cargar los datos cada vez que cambia la página
+  }, []);
 
 
 
@@ -126,24 +124,32 @@ const exportToPDF = async () => {
 
 
     const requests = Array.from({ length: totalPages }, (_, page) =>
-      axios.get("http://localhost:8080/api/reports/inventory/products", {
-        params: { page, size: itemsPerPage },
-      })
+      fetchProductReport(page, itemsPerPage)
     );
 
     const responses = await Promise.all(requests);
 
-    responses.forEach((res) => {
-      res.data.forEach((row) => {
-  allData.push([
-    row.product,
-    row.category,
-    row.stock,
-    row.branch,
-  ]);
-});
+    responses.forEach((res, i) => {
+      if (!res) {
+        console.warn(`⚠️ Respuesta vacía en la página ${i}`);
+        return;
+      }
 
+      const rows =
+        Array.isArray(res) ? res
+        : Array.isArray(res.content) ? res.content
+        : [];
+
+      rows.forEach((row) => {
+        allData.push([
+          row.product,
+          row.category,
+          row.stock,
+          row.branch,
+        ]);
+      });
     });
+
 
 
      doc.autoTable({

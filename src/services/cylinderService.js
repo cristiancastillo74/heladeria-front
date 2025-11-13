@@ -1,11 +1,12 @@
 import axios from "axios";
+import api from "../api/axiosConfig";
 
-const API_URL = "http://localhost:8080/helados/cylinder";
+const API_URL = "/helados/cylinder";
 
 //obtener cylinders
 export const getCylinder = async () =>{
     try{
-        const response = await axios.get(API_URL);
+        const response = await api.get(API_URL);
         return response.data;
     }catch(error){
         console.error("error",error);
@@ -16,7 +17,7 @@ export const getCylinder = async () =>{
 //guardar cylinder
 export const saveCylinder = async (cylinder) =>{
     try{
-        const response = await axios.post(API_URL,cylinder);
+        const response = await api.post(API_URL,cylinder);
         return response;
     }catch(error){
         console.error("error",error);
@@ -28,7 +29,7 @@ export const saveCylinder = async (cylinder) =>{
 
 export const deleteCylinder = async (id) =>{
     try{
-        await axios.delete(`${API_URL}/${id}`);
+        await api.delete(`${API_URL}/${id}`);
     }catch(error){
         console.log("error",error);
         throw error;
