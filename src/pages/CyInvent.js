@@ -5,6 +5,7 @@ import { AddIcon, DeleteIcon, EditIcon, SaveIcon } from '../assets/icons';
 import { getStatus } from '../services/statusService';
 import { getCylinder } from '../services/cylinderService';
 import { useAuth } from '../context/AuthContext';
+import { getCylinderTypes } from '../services/adminConfigService';
 
 
   const CyInvent = () => {
@@ -12,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
     const [cyInvents, setCyInvents]             = useState([]);
     const [statusOptions, setStatusOptions]     = useState([]);
     const [cylinders, setCylinders]             = useState([]);
+    const [cylinderTypes, setCylinderTypes]     = useState([]);
     const [loading, setLoading]                 = useState(true);
     const [error,   setError]                   = useState(null);
     const [currentCyInvent, setCurrentInvent]   = useState({ fraction:"", status:"", branch:null, cylinder:null});
@@ -45,6 +47,13 @@ import { useAuth } from '../context/AuthContext';
         }
       };
       fetchStatus();
+    }, []);
+
+    useEffect(() => {
+      getCylinderTypes().then(setCylinderTypes).catch((err) => {
+        setError('No se pudieron cargar los tipos de cilindro');
+        console.error(err);
+      });
     }, []);
 
     useEffect (() =>{
@@ -84,13 +93,21 @@ import { useAuth } from '../context/AuthContext';
     const handleSubmit = async (e) =>{
             e.preventDefault();
             try{
-                await saveInvent(currentCyInvent);
+                const inventoryToSave = {
+                  ...(currentCyInvent.id ? { id: currentCyInvent.id } : {}),
+                  cylinder: { id: currentCyInvent.cylinder.id },
+                  branch: currentBranch ? { id: currentBranch.id } : null,
+                  user: currentUser ? { idUser: currentUser.id } : null,
+                  status: currentCyInvent.status,
+                  fraction: Number(currentCyInvent.fraction)
+                };
+                await saveInvent(inventoryToSave);
                 const updated = await getCyInvent();
                 setCyInvents(updated);
                 document.getElementById("cyInvent_modal").close();
                 setCurrentInvent({ fraction:"", status:"",user: null,branch:null, cylinder:null});
             }catch(err){
-                console.log("error",err);
+                console.error("Error al guardar inventario de cilindro:", err.response?.data || err.message);
             }
         };
 
@@ -156,6 +173,7 @@ import { useAuth } from '../context/AuthContext';
 
                 <select
                   className="select select-bordered w-full"
+                  required
                   value={currentCyInvent.cylinder?.id || ""}
                   onChange={(e) => {
                     const selectedId = parseInt(e.target.value);
@@ -173,6 +191,7 @@ import { useAuth } from '../context/AuthContext';
 
                 <select
                   className="select select-bordered w-full"
+                  required
                   value={currentCyInvent.status}
                   onChange={(e) =>
                     setCurrentInvent({ ...currentCyInvent, status: e.target.value })
@@ -186,15 +205,16 @@ import { useAuth } from '../context/AuthContext';
                 </select>
                 <select
                   className="select select-bordered w-full"
+                  required
                   value={currentCyInvent.fraction}
                   onChange={(e) =>
                     setCurrentInvent({ ...currentCyInvent, fraction: e.target.value })
                   }
                 >
                   <option value=""   >-- Selecciona el tipo de cilindro --</option>
-                  <option value="1"  >CILINDRO_COMPLETO </option>
-                  <option value="0.5">CILINDRO_MEDIO    </option>
-                  <option value="0"  >CILINDRO_VACIO    </option>
+                  {cylinderTypes.map((type) => (
+                    <option key={type.id} value={type.fraction}>{type.name}</option>
+                  ))}
                 </select>
 
                 {/* Mostrar info del usuario actual */}

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { deleteProduct, getProducts, saveProduct } from '../services/productService';
 import PaginatedTable from '../component/PaginatedTable';
 import { getCategories } from "../services/categoryService";
+import { getProductStatuses } from '../services/adminConfigService';
 import { EditIcon, DeleteIcon, SaveIcon, AddIcon} from '../assets/icons';
 
 const Products = () => {
@@ -9,6 +10,7 @@ const Products = () => {
     const [loading, setLoading]                 = useState(true);
     const [error, setError]                     = useState(null);
     const [categories, setCategories]           = useState([]);
+    const [productStatuses, setProductStatuses] = useState([]);
     const [currentProduct, setCurrentProduct]   = useState({ name: "", category: "", price: "", isIceCream: false, ballsPerUnit: "" });
     const [isEditing, setIsEditing]             = useState(false); // false = crear, true = editar
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -32,6 +34,10 @@ const Products = () => {
         fetchProducts();
     }, []);
 
+    useEffect(() => {
+      getProductStatuses().then(setProductStatuses).catch((err) => console.error('Error al obtener estados:', err));
+    }, []);
+
     // traer categorías
     useEffect(() => {
       const fetchCategories = async () => {
@@ -48,7 +54,7 @@ const Products = () => {
 
 
     const openCreateModal = () => {
-      setCurrentProduct({ name: "",code: "", category: "", price: "",isIceCream: false, ballsPerUnit: "" });
+      setCurrentProduct({ name: "",code: "", category: "", status: productStatuses[0] || 'ACTIVO', price: "",isIceCream: false, ballsPerUnit: "" });
       setIsEditing(false);
       document.getElementById("product_modal").showModal();
     };
@@ -66,7 +72,7 @@ const Products = () => {
         const updated = await getProducts();
         setProducts(updated);
         document.getElementById("product_modal").close();
-        setCurrentProduct({ name: "",code: "", category: "", price: "", ballsPerUnit: "" });
+        setCurrentProduct({ name: "",code: "", category: "", status: productStatuses[0] || 'ACTIVO', price: "", ballsPerUnit: "" });
       } catch (err) {
         console.error("Error al guardar producto:", err);
       }
@@ -97,13 +103,14 @@ const Products = () => {
         <h1 className='text-2xl font-bold mb-4 text-center'>PRODUCTOS</h1>
         
         <PaginatedTable
-        columns={['ID', 'PRODUCTO','CODIGO','¿ES HELADO?', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
+        columns={['ID', 'PRODUCTO','CODIGO','ESTADO','¿ES HELADO?', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
         data={products}
         renderRow={(product) => (
           <tr key={product.id} className="hover:bg-base-300">
             <td className="text-center">{product.id}</td>
             <td className="text-center">{product.name}</td>
             <td className="text-center">{product.code}</td>
+            <td className="text-center">{product.status || 'ACTIVO'}</td>
             <td className="text-center">{product.isIceCream ? "Sí" : "No"}</td>
             <td className="text-center">{product.category}</td>
             <td className="text-center">$ {product.price}</td>
@@ -161,6 +168,15 @@ const Products = () => {
               {categories.map((cat) => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
+            </select>
+
+            <select
+              className="select select-bordered w-full"
+              value={currentProduct.status || 'ACTIVO'}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, status: e.target.value })}
+              required
+            >
+              {productStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
             </select>
 
             <input 

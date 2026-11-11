@@ -12,6 +12,7 @@ const Expenses = () => {
     const [confirmDeleteDesc, setConfirmDeleteDesc]     = useState('');
     const [currentExpense, setCurrentExpense]           = useState({descripcion:'', amount:0, user:null, branch:null});
     const [isEditing, setIsEditing]                     = useState(false);
+    const [saveError, setSaveError]                     = useState('');
     const { currentUser, currentBranch }                = useAuth();
     const [typeExpenseOptions, setTypeExpenseOptions]   = useState([]);
 
@@ -46,21 +47,35 @@ const Expenses = () => {
         }, []);
 
     const openCreateModal = () => {
-        setCurrentExpense({descripcion:'', amount:0, user: currentUser,branch: currentBranch});
+        setCurrentExpense({descripcion:'', amount:'', typeExpense:'', user: currentUser, branch: currentBranch});
+        setSaveError('');
         setIsEditing(false);
         document.getElementById('save_modal').showModal();
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSaveError('');
         try{
-            await saveExpense(currentExpense);
+            const expenseToSave = {
+                ...(currentExpense.id ? { id: currentExpense.id } : {}),
+                descripcion: currentExpense.descripcion.trim(),
+                amount: Number(currentExpense.amount),
+                typeExpense: currentExpense.typeExpense,
+                user: currentUser ? { idUser: currentUser.id } : null,
+                branch: currentBranch ? { id: currentBranch.id } : null
+            };
+            await saveExpense(expenseToSave);
             const update = await getExpenses();
             setExpense(update);
             document.getElementById('save_modal').close();
-            setCurrentExpense({descripcion:'', amount:0, user: currentUser,branch: currentBranch});
+            setCurrentExpense({descripcion:'', amount:'', typeExpense:'', user: currentUser, branch: currentBranch});
         }catch(error){
-            console.log('error');
+            console.error('Error al registrar gasto:', error.response?.data || error.message);
+            const responseMessage = error.response?.data;
+            setSaveError(typeof responseMessage === 'string'
+                ? responseMessage
+                : 'No se pudo registrar el gasto. Verifica los datos e inténtalo nuevamente.');
         }
     };
 
@@ -124,6 +139,7 @@ const Expenses = () => {
                 <form method='dialog' className='mt-4 space-y-3' onSubmit={handleSubmit}>
                     <textarea 
                         type='text'
+                        required
                         placeholder='Descripcion del Gasto'
                         className='input input-bordered w-full'
                         value={currentExpense.descripcion}
@@ -131,6 +147,7 @@ const Expenses = () => {
                         
                     <select
                     className="select select-bordered w-full"
+                    required
                     value={currentExpense.typeExpense}
                     onChange={(e) =>
                         setCurrentExpense({ ...currentExpense, typeExpense: e.target.value })
@@ -145,10 +162,15 @@ const Expenses = () => {
 
                     <input
                     type='number'
+                    required
+                    min="0.01"
+                    step="0.01"
                     placeholder='Monto del gasto'
                     className='input input-bordered w-full'
                     value={currentExpense.amount}
                     onChange={(e) => setCurrentExpense({...currentExpense, amount: e.target.value})}/>
+
+                    {saveError && <p className="text-sm text-error" role="alert">{saveError}</p>}
 
                     {/* Mostrar info del usuario actual */}
                     <div className="text-sm text-gray-600">

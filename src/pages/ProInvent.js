@@ -98,7 +98,7 @@ const ProInvent = () => {
             renderRow={(proInvent) => (
                 <tr key={proInvent.id} className="hover:bg-base-300">
                     <td className='text-center'>{proInvent.id}</td>
-                    <td className='text-center'>{proInvent.product.name}</td>
+                    <td className='text-center'>{proInvent.product?.name || 'Producto no asignado'}</td>
                     <td className='text-center'>{proInvent.stock}</td>
                     <td className='text-center'>
                         <button className='btn btn-outline btn-warning me-1 btn-sm'

@@ -1,51 +1,51 @@
-// src/context/AuthContext.jsx
 import { createContext, useContext, useState } from 'react';
+import axios from 'axios';
+import { requestLogin } from '../services/authService';
 
-// Usuario y sucursal de prueba (quemados)
-const dummyUser = {
-  idUser: 1,
-  firstName: 'MARIA',
-  lastName: 'MENJIVAR',
-  dui: '04876875-7',
-  phone: '1234-1234',
-  address: 'S.S.',
-  salary: 300.0,
-  workDays: '30',
-  username: 'mmenjivar',
-  password: '123123',
-  role: 'EMPLOYEE',
-  branch: {
-    id: 1,
-    name: 'Opico',
-    location: 'S.S.',
-    phone: '2222-2222',
-    createdAt: null
-  },
-  createdAt: null,
-  updatedAt: null
+const TOKEN_KEY = 'authToken';
+const USER_KEY = 'authUser';
+const AuthContext = createContext(null);
+
+const readStoredUser = () => {
+  try {
+    const storedUser = localStorage.getItem(USER_KEY);
+    return storedUser ? JSON.parse(storedUser) : null;
+  } catch {
+    return null;
+  }
 };
 
-const dummyBranch = dummyUser.branch;
-
-const AuthContext = createContext();
-
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(dummyUser);
-  const [currentBranch, setCurrentBranch] = useState(dummyBranch);
+  const [token, setToken] = useState(() => {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (storedToken) {
+      axios.defaults.headers.common.Authorization = `Bearer ${storedToken}`;
+    }
+    return storedToken;
+  });
+  const [currentUser, setCurrentUser] = useState(readStoredUser);
+  const currentBranch = currentUser?.branch ?? null;
+  const isAuthenticated = Boolean(token && currentUser);
 
-  // Login y logout están listos para cuando los uses realmente
-  const login = (userData, branchData) => {
-    setCurrentUser(userData);
-    setCurrentBranch(branchData);
+  const login = async (username, password) => {
+    const { token: newToken, user } = await requestLogin(username, password);
+    localStorage.setItem(TOKEN_KEY, newToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    axios.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+    setToken(newToken);
+    setCurrentUser(user);
   };
 
   const logout = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    delete axios.defaults.headers.common.Authorization;
+    setToken(null);
     setCurrentUser(null);
-    setCurrentBranch(null);
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, currentBranch, login, logout }}>
+    <AuthContext.Provider value={{ currentUser, currentBranch, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
