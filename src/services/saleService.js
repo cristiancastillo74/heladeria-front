@@ -16,3 +16,12 @@ export const saveSales = async (sale, branchId) => {
         throw error;
     }
 };
+
+export const getSalesHistory = async (branchId) => {
+    const response = await axios.get(API_URL, {
+        params: branchId ? { branchId } : {}
+    });
+    return response.data;
+};
+
+export const deleteSale = async (saleId) => axios.delete(`${API_URL}/${saleId}`);

@@ -39,6 +39,9 @@ export default function Navbar() {
         <Link to="/sales" className="btn btn-ghost">
           Registrar Venta
         </Link>
+        <Link to="/sales/history" className="btn btn-ghost">
+          Ventas
+        </Link>
         <Link to="/expenses" className="btn btn-ghost">
           Gastos
         </Link>

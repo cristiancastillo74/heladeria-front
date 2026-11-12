@@ -18,6 +18,7 @@ import Login from './pages/Login';
 import Users from './pages/Users';
 import AdminSettings from './pages/AdminSettings';
 import PurchaseOrderReport from './pages/PurchaseOrderReport';
+import SalesHistory from './pages/SalesHistory';
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -101,6 +102,7 @@ function App() {
             <Route path="/cyInvent" element={<InventoryRoute><CyInvent /></InventoryRoute>} />
             <Route path="/proInvent" element={<InventoryRoute><ProInvent /></InventoryRoute>} />
             <Route path="/sales" element={<Sales />} />
+            <Route path="/sales/history" element={<SalesHistory />} />
             <Route path="/users" element={<AdminUsersRoute />} />
             <Route path="/admin/configuration" element={<GlobalAdminSettingsRoute />} />
             <Route path="*" element={<Navigate to="/" replace />} />
