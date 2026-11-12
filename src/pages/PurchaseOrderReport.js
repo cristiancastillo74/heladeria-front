@@ -265,7 +265,7 @@ export default function PurchaseOrderReport({ type }) {
           </div>
           <div className="overflow-x-auto border border-base-300">
             <table className="table table-zebra">
-              <thead><tr><th>Artículo</th><th>Existencia</th><th>Precio catálogo</th><th /></tr></thead>
+              <thead><tr><th>Artículo</th><th>Existencia</th><th>Precio compra</th><th /></tr></thead>
               <tbody>
                 {candidates.map((candidate) => {
                   const selected = selectedItems.some((item) => item.itemId === candidate.id);

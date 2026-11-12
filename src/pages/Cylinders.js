@@ -8,7 +8,7 @@ const Cylinders = () => {
     const [loading, setLoading]                 = useState(true);
     const [error, setError]                     = useState(null);
     const [isEditing, setIsEditing]             = useState(false);
-    const [currentCylinder, setCurrentCylinder] = useState({flavor:"", estimatedBalls:""});
+    const [currentCylinder, setCurrentCylinder] = useState({flavor:"", estimatedBalls:"", purchasePrice:""});
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
     useEffect(() => {
@@ -28,7 +28,7 @@ const Cylinders = () => {
     },[]);
 
     const openCreateModal = () =>{
-        setCurrentCylinder({flavor:"", estimatedBalls:""});
+        setCurrentCylinder({flavor:"", estimatedBalls:"", purchasePrice:""});
         setIsEditing(false);
         document.getElementById("cylinder_modal").showModal();
     };
@@ -46,7 +46,7 @@ const Cylinders = () => {
             const updated = await getCylinder();
             setCylinders(updated);
             document.getElementById("cylinder_modal").close();
-            setCurrentCylinder({flavor:"", estimatedBalls:""});
+            setCurrentCylinder({flavor:"", estimatedBalls:"", purchasePrice:""});
         }catch(err){
             console.log("error",err);
         }
@@ -76,13 +76,14 @@ const Cylinders = () => {
     <div className='p-10'>
          <h1 className='text-2xl font-bold mb-4 text-center'>CILINDROS DE HELADO</h1>
          <PaginatedTable
-            columns={['ID', 'SABOR', 'PROMEDIO DE BOLAS', 'ACCIONES']}
+            columns={['ID', 'SABOR', 'PROMEDIO DE BOLAS', 'PRECIO COMPRA', 'ACCIONES']}
             data={cylinders}
             renderRow={(cylinder) => (
                 <tr key={cylinder.id} className='hover:bg-base-300'>
                     <td className='text-center'>{cylinder.id}</td>
                     <td className='text-center'>{cylinder.flavor}</td>
                     <td className='text-center'>{cylinder.estimatedBalls}</td>
+                    <td className='text-center'>{cylinder.purchasePrice == null ? '—' : `$ ${cylinder.purchasePrice}`}</td>
                     <td >
                         <button className="btn btn-outline btn-warning me-1 btn-sm"
                             onClick={() => openEditModal(cylinder)}
@@ -120,6 +121,16 @@ const Cylinders = () => {
                     className='input input-bordered w-full'
                     value={currentCylinder.flavor}
                     onChange={(e) => setCurrentCylinder({...currentCylinder, flavor: e.target.value})}
+                />
+                <input
+                    type='number'
+                    min='0'
+                    step='0.01'
+                    required
+                    placeholder='precio de compra'
+                    className='input input-bordered w-full'
+                    value={currentCylinder.purchasePrice ?? ''}
+                    onChange={(e) => setCurrentCylinder({...currentCylinder, purchasePrice: e.target.value})}
                 />
                 <input
                     type='number'

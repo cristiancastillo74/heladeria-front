@@ -11,7 +11,7 @@ const Products = () => {
     const [error, setError]                     = useState(null);
     const [categories, setCategories]           = useState([]);
     const [productStatuses, setProductStatuses] = useState([]);
-    const [currentProduct, setCurrentProduct]   = useState({ name: "", category: "", price: "", isIceCream: false, ballsPerUnit: "" });
+    const [currentProduct, setCurrentProduct]   = useState({ name: "", category: "", price: "", purchasePrice: "", isIceCream: false, ballsPerUnit: "" });
     const [isEditing, setIsEditing]             = useState(false); // false = crear, true = editar
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
@@ -54,7 +54,7 @@ const Products = () => {
 
 
     const openCreateModal = () => {
-      setCurrentProduct({ name: "",code: "", category: "", status: productStatuses[0] || 'ACTIVO', price: "",isIceCream: false, ballsPerUnit: "" });
+      setCurrentProduct({ name: "",code: "", category: "", status: productStatuses[0] || 'ACTIVO', price: "", purchasePrice: "", isIceCream: false, ballsPerUnit: "" });
       setIsEditing(false);
       document.getElementById("product_modal").showModal();
     };
@@ -72,7 +72,7 @@ const Products = () => {
         const updated = await getProducts();
         setProducts(updated);
         document.getElementById("product_modal").close();
-        setCurrentProduct({ name: "",code: "", category: "", status: productStatuses[0] || 'ACTIVO', price: "", ballsPerUnit: "" });
+        setCurrentProduct({ name: "",code: "", category: "", status: productStatuses[0] || 'ACTIVO', price: "", purchasePrice: "", ballsPerUnit: "" });
       } catch (err) {
         console.error("Error al guardar producto:", err);
       }
@@ -103,7 +103,7 @@ const Products = () => {
         <h1 className='text-2xl font-bold mb-4 text-center'>PRODUCTOS</h1>
         
         <PaginatedTable
-        columns={['ID', 'PRODUCTO','CODIGO','ESTADO','¿ES HELADO?', 'CATEGORIA', 'PRECIO', 'BOLAS POR UNI', 'ACCIONES']}
+        columns={['ID', 'PRODUCTO','CODIGO','ESTADO','¿ES HELADO?', 'CATEGORIA', 'PRECIO VENTA', 'PRECIO COMPRA', 'BOLAS POR UNI', 'ACCIONES']}
         data={products}
         renderRow={(product) => (
           <tr key={product.id} className="hover:bg-base-300">
@@ -114,6 +114,7 @@ const Products = () => {
             <td className="text-center">{product.isIceCream ? "Sí" : "No"}</td>
             <td className="text-center">{product.category}</td>
             <td className="text-center">$ {product.price}</td>
+            <td className="text-center">{product.purchasePrice == null ? '—' : `$ ${product.purchasePrice}`}</td>
             <td className="text-center">{product.ballsPerUnit}</td>
             <td>
               <button className="btn btn-outline btn-warning me-1 btn-sm"
@@ -181,10 +182,20 @@ const Products = () => {
 
             <input 
               type="number" 
-              placeholder="Precio" 
+              placeholder="Precio de venta" 
               className="input input-bordered w-full" 
               value={currentProduct.price}
               onChange={(e) => setCurrentProduct({ ...currentProduct, price: e.target.value })}
+            />
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="Precio de compra"
+              className="input input-bordered w-full"
+              required
+              value={currentProduct.purchasePrice ?? ''}
+              onChange={(e) => setCurrentProduct({ ...currentProduct, purchasePrice: e.target.value })}
             />
             <input 
               type="number" 
