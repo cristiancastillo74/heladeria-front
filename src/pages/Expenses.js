@@ -3,6 +3,7 @@ import { deleteExpense, getExpenses, getTypeExpenses, saveExpense } from '../ser
 import PaginatedTable from '../component/PaginatedTable';
 import { AddIcon, DeleteIcon, SaveIcon } from '../assets/icons';
 import { useAuth } from '../context/AuthContext';
+import { getUserBranches } from '../services/userService';
 
 const Expenses = () => {
     const [expense,     setExpense]                     = useState([]);
@@ -14,7 +15,9 @@ const Expenses = () => {
     const [isEditing, setIsEditing]                     = useState(false);
     const [saveError, setSaveError]                     = useState('');
     const { currentUser, currentBranch }                = useAuth();
+    const canManageExpenses = ['ADMIN_GLOBAL', 'ADMIN_BRANCH'].includes(currentUser?.role);
     const [typeExpenseOptions, setTypeExpenseOptions]   = useState([]);
+    const [branches, setBranches]                     = useState([]);
 
     useEffect(() => {
         const fetchExpenses = async () =>{
@@ -46,8 +49,21 @@ const Expenses = () => {
           fetchTypeExpenses();
         }, []);
 
+        useEffect(() => {
+            getUserBranches().then(setBranches).catch((err) => {
+                setIsError('No se pudieron cargar las sucursales');
+                console.error(err);
+            });
+        }, []);
+
     const openCreateModal = () => {
-        setCurrentExpense({descripcion:'', amount:'', typeExpense:'', user: currentUser, branch: currentBranch});
+        setCurrentExpense({
+            descripcion: '',
+            amount: '',
+            typeExpense: '',
+            user: currentUser,
+            branch: currentBranch || (branches.length === 1 ? branches[0] : null)
+        });
         setSaveError('');
         setIsEditing(false);
         document.getElementById('save_modal').showModal();
@@ -63,7 +79,7 @@ const Expenses = () => {
                 amount: Number(currentExpense.amount),
                 typeExpense: currentExpense.typeExpense,
                 user: currentUser ? { idUser: currentUser.id } : null,
-                branch: currentBranch ? { id: currentBranch.id } : null
+                branch: currentExpense.branch ? { id: Number(currentExpense.branch.id) } : null
             };
             await saveExpense(expenseToSave);
             const update = await getExpenses();
@@ -103,7 +119,9 @@ const Expenses = () => {
     <div className='p-10'>
         <h1 className='text-2xl font-bold mb-4 text-center'>Registro de gastos</h1>
         <PaginatedTable
-            columns={['ID','GASTO','MONTO', 'TIPO','QUIEN REALIZO EL GASTO','FECHA registro','FECHA modificacion','ACCIONES']}
+            columns={canManageExpenses
+                ? ['ID','GASTO','MONTO', 'TIPO','SUCURSAL','QUIEN REALIZO EL GASTO','FECHA registro','FECHA modificacion','ACCIONES']
+                : ['ID','GASTO','MONTO', 'TIPO','SUCURSAL','QUIEN REALIZO EL GASTO','FECHA registro','FECHA modificacion']}
             data={expense}
             renderRow={(ex) => (
                 <tr key={ex.id} className='hover:bg-base-300'>
@@ -111,16 +129,17 @@ const Expenses = () => {
                     <td className='text-center'>{ex.descripcion}</td>
                     <td className='text-center'>{ex.amount}</td>
                     <td className='text-center'>{ex.typeExpense}</td>
-                    <td className='text-center'>{ex.user.firstName} {ex.user.lastName}</td>
+                    <td className='text-center'>{ex.branch?.name || 'Sin sucursal'}</td>
+                    <td className='text-center'>{ex.user?.firstName} {ex.user?.lastName}</td>
                     <td className='text-center'>{ex.createdAt}</td>
                     <td className='text-center'>{ex.updatedAt}</td>
-                    <td>
+                    {canManageExpenses && <td>
                         <button className='btn btn-outline btn-error ml-1 btn-sm'
                             onClick={() =>{openDeleteModal(ex.id, ex.descripcion)}}>
                                 <DeleteIcon className='w-5 h-5 text-current'/>
                                 Eliminar
                         </button>
-                    </td>
+                    </td>}
                 </tr>
             )}
             extraAction={
@@ -170,13 +189,28 @@ const Expenses = () => {
                     value={currentExpense.amount}
                     onChange={(e) => setCurrentExpense({...currentExpense, amount: e.target.value})}/>
 
+                    <select
+                        className="select select-bordered w-full"
+                        required
+                        value={currentExpense.branch?.id || ''}
+                        onChange={(e) => {
+                            const selectedBranch = branches.find((branch) => branch.id === Number(e.target.value)) || null;
+                            setCurrentExpense((current) => ({ ...current, branch: selectedBranch }));
+                        }}
+                    >
+                        <option value="" disabled>-- Selecciona una sucursal --</option>
+                        {branches.map((branch) => (
+                            <option key={branch.id} value={branch.id}>{branch.name}</option>
+                        ))}
+                    </select>
+
                     {saveError && <p className="text-sm text-error" role="alert">{saveError}</p>}
 
                     {/* Mostrar info del usuario actual */}
                     <div className="text-sm text-gray-600">
                         {/* <h3><strong>Datos del usuario que registra el gasto</strong></h3> */}
                         <p><strong>Usuario:</strong> {currentUser?.firstName} {currentUser?.lastName}</p>
-                        <p><strong>Sucursal:</strong> {currentBranch?.name}</p>
+                        <p><strong>Sucursal seleccionada:</strong> {currentExpense.branch?.name || 'Selecciona una sucursal'}</p>
                     </div>
 
                     <div className="modal-action">

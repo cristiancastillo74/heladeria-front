@@ -4,14 +4,20 @@ import {
   branchAdminService,
   categoryAdminService,
   cylinderTypeAdminService,
-  productStatusAdminService
+  productStatusAdminService,
+  getProductInventoryThresholds,
+  updateProductInventoryThreshold,
+  getCylinderInventoryThresholds,
+  updateCylinderInventoryThreshold
 } from '../services/adminConfigService';
 
 const sections = [
   { id: 'branches', label: 'Sucursales' },
   { id: 'categories', label: 'Categorías' },
   { id: 'productStatuses', label: 'Estados de producto' },
-  { id: 'cylinderTypes', label: 'Tipos de cilindro' }
+  { id: 'cylinderTypes', label: 'Tipos de cilindro' },
+  { id: 'productThresholds', label: 'Mínimos por producto' },
+  { id: 'cylinderThresholds', label: 'Alertas de cilindro' }
 ];
 
 const services = {
@@ -25,18 +31,29 @@ const blankEntry = { name: '', location: '', phone: '', fraction: '' };
 
 export default function AdminSettings() {
   const [activeSection, setActiveSection] = useState('branches');
-  const [data, setData] = useState({ branches: [], categories: [], productStatuses: [], cylinderTypes: [] });
+  const [data, setData] = useState({
+    branches: [], categories: [], productStatuses: [], cylinderTypes: [],
+    productThresholds: [], cylinderThresholds: []
+  });
   const [entry, setEntry] = useState(blankEntry);
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [thresholdValues, setThresholdValues] = useState({});
+
+  const isThresholdSectionFor = (section) => ['productThresholds', 'cylinderThresholds'].includes(section);
+  const loadThresholds = async (section) => section === 'productThresholds'
+    ? getProductInventoryThresholds()
+    : getCylinderInventoryThresholds();
 
   const loadSection = async (section = activeSection) => {
     setError('');
     try {
-      const values = await services[section].list();
+      const values = isThresholdSectionFor(section)
+        ? await loadThresholds(section)
+        : await services[section].list();
       setData((current) => ({ ...current, [section]: values }));
     } catch (requestError) {
       setError(requestError.response?.data?.detail || requestError.response?.data?.message || 'No se pudo cargar la configuración.');
@@ -115,9 +132,34 @@ export default function AdminSettings() {
     }
   };
 
+  const saveThreshold = async (item) => {
+    setError('');
+    setSuccess('');
+    const threshold = Number(thresholdValues[item.id] ?? item.threshold);
+    if (!Number.isFinite(threshold) || threshold < 0 || (activeSection === 'cylinderThresholds' && threshold > 100)) {
+      setError(activeSection === 'cylinderThresholds'
+        ? 'El porcentaje debe estar entre 0 y 100.'
+        : 'El mínimo debe ser un entero no negativo.');
+      return;
+    }
+    if (activeSection === 'productThresholds' && !Number.isInteger(threshold)) {
+      setError('El mínimo de stock debe ser un número entero.');
+      return;
+    }
+    try {
+      if (activeSection === 'productThresholds') await updateProductInventoryThreshold(item.id, threshold);
+      else await updateCylinderInventoryThreshold(item.id, threshold);
+      setSuccess(`Umbral actualizado para ${item.name}.`);
+      await loadSection(activeSection);
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || 'No se pudo actualizar el umbral.');
+    }
+  };
+
   const rows = data[activeSection];
   const isBranchSection = activeSection === 'branches';
   const isCylinderSection = activeSection === 'cylinderTypes';
+  const isThresholdSection = isThresholdSectionFor(activeSection);
 
   return (
     <main className="mx-auto max-w-6xl p-4 md:p-8">
@@ -154,6 +196,7 @@ export default function AdminSettings() {
                     <th>Nombre</th>
                     {isBranchSection && <><th>Ubicación</th><th>Teléfono</th></>}
                     {isCylinderSection && <th>Fracción</th>}
+                    {isThresholdSection && <th>{activeSection === 'productThresholds' ? 'Stock mínimo' : 'Porcentaje mínimo'}</th>}
                     <th aria-label="Acciones" />
                   </tr>
                 </thead>
@@ -163,20 +206,38 @@ export default function AdminSettings() {
                       <td className="font-medium">{item.name}</td>
                       {isBranchSection && <><td>{item.location || '—'}</td><td>{item.phone || '—'}</td></>}
                       {isCylinderSection && <td>{item.fraction}</td>}
+                      {isThresholdSection && <td>
+                        <div className="flex items-center gap-2">
+                          <input
+                            aria-label={`Umbral para ${item.name}`}
+                            className="input input-bordered input-sm w-28"
+                            type="number"
+                            min="0"
+                            max={activeSection === 'cylinderThresholds' ? '100' : undefined}
+                            step={activeSection === 'productThresholds' ? '1' : '0.1'}
+                            value={thresholdValues[item.id] ?? item.threshold}
+                            onChange={(event) => setThresholdValues({ ...thresholdValues, [item.id]: event.target.value })}
+                          />
+                          <span>{activeSection === 'productThresholds' ? 'unidades' : '%'}</span>
+                          <button className="btn btn-primary btn-sm" onClick={() => saveThreshold(item)}>Guardar</button>
+                        </div>
+                      </td>}
                       <td className="whitespace-nowrap text-right">
-                        <button className="btn btn-ghost btn-sm" title="Editar" onClick={() => beginEdit(item)}><EditIcon className="h-4 w-4" /></button>
-                        <button className="btn btn-ghost btn-sm text-error" title="Eliminar" onClick={() => removeEntry(item)}><DeleteIcon className="h-4 w-4" /></button>
+                        {!isThresholdSection && <>
+                          <button className="btn btn-ghost btn-sm" title="Editar" onClick={() => beginEdit(item)}><EditIcon className="h-4 w-4" /></button>
+                          <button className="btn btn-ghost btn-sm text-error" title="Eliminar" onClick={() => removeEntry(item)}><DeleteIcon className="h-4 w-4" /></button>
+                        </>}
                       </td>
                     </tr>
                   ))}
-                  {rows.length === 0 && <tr><td colSpan={isBranchSection ? 4 : isCylinderSection ? 3 : 2} className="py-8 text-center text-base-content/60">No hay registros.</td></tr>}
+                  {rows.length === 0 && <tr><td colSpan={isBranchSection ? 4 : isCylinderSection || isThresholdSection ? 3 : 2} className="py-8 text-center text-base-content/60">No hay registros.</td></tr>}
                 </tbody>
               </table>
             </div>
           )}
         </section>
 
-        <form className="h-fit border-l border-base-300 pl-0 lg:pl-6" onSubmit={saveEntry}>
+        {!isThresholdSection && <form className="h-fit border-l border-base-300 pl-0 lg:pl-6" onSubmit={saveEntry}>
           <h2 className="text-lg font-semibold">{editingId ? 'Editar registro' : 'Agregar registro'}</h2>
           <label className="form-control mt-4">
             <span className="label-text mb-1">Nombre</span>
@@ -197,7 +258,7 @@ export default function AdminSettings() {
             </button>
             {editingId && <button type="button" className="btn" onClick={resetForm}>Cancelar</button>}
           </div>
-        </form>
+        </form>}
       </div>
     </main>
   );

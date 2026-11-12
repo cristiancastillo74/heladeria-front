@@ -24,6 +24,13 @@ export const getCyInventDisponiblesCondicional = async () => {
     }
 }
 
+export const getSaleCyInventDisponibles = async (branchId) => {
+    const result = await axios.get('http://localhost:8080/helados/sale/inventory/cylinders/available', {
+        params: branchId ? { branchId } : {}
+    });
+    return result.data;
+};
+
 //crear o editar  un inventario de cilindro
 export const saveInvent = async (cyInvent) => {
     try{

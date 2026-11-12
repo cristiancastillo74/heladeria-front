@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 
 const emptyForm = {
 	firstName: '', lastName: '', dui: '', phone: '', address: '', salary: '',
-	workDays: '', username: '', password: '', role: '', branchId: ''
+	workDays: '', username: '', password: '', role: '', branchId: '', canViewInventory: false
 };
 
 const roleLabels = {
@@ -63,7 +63,8 @@ export default function Users() {
 		setForm({
 			...emptyForm,
 			role: roles[0] || '',
-			branchId: isGlobalAdmin ? '' : String(branches[0]?.id || '')
+			branchId: isGlobalAdmin ? '' : String(branches[0]?.id || ''),
+			canViewInventory: false
 		});
 	};
 
@@ -82,7 +83,8 @@ export default function Users() {
 			username: user.username || '',
 			password: '',
 			role: user.role,
-			branchId: user.branchId ? String(user.branchId) : ''
+			branchId: user.branchId ? String(user.branchId) : '',
+			canViewInventory: Boolean(user.canViewInventory)
 		});
 	};
 
@@ -159,7 +161,7 @@ export default function Users() {
 			{success && <div className="alert alert-success mb-4" role="status">{success}</div>}
 
 			<PaginatedTable
-				columns={['Usuario', 'Nombre', 'Rol', 'Sucursal', 'Teléfono', 'Acciones']}
+				columns={['Usuario', 'Nombre', 'Rol', 'Inventarios', 'Sucursal', 'Teléfono', 'Acciones']}
 				data={users}
 				filasPorPagina={10}
 				renderRow={(user) => (
@@ -167,6 +169,7 @@ export default function Users() {
 						<td className="font-medium">{user.username}</td>
 						<td>{user.firstName} {user.lastName}</td>
 						<td><span className="badge badge-outline">{roleLabels[user.role] || user.role}</span></td>
+						<td>{user.role === 'EMPLOYEE' && user.canViewInventory ? 'Lectura habilitada' : '—'}</td>
 						<td>{user.branchName || 'Global'}</td>
 						<td>{user.phone || '—'}</td>
 						<td className="whitespace-nowrap">
@@ -212,6 +215,15 @@ export default function Users() {
 								{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
 							</select>
 						</label>
+						{isGlobalAdmin && form.role === 'EMPLOYEE' && <label className="label cursor-pointer justify-start gap-3 sm:col-span-2">
+							<input
+								type="checkbox"
+								className="toggle toggle-primary"
+								checked={form.canViewInventory}
+								onChange={(event) => setForm({ ...form, canViewInventory: event.target.checked })}
+							/>
+							<span className="label-text">Permitir consultar inventario de su sucursal</span>
+						</label>}
 						<label className="form-control sm:col-span-2"><span className="label-text mb-1">Dirección</span><input className="input input-bordered" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>
 						{error && <p className="text-sm text-error sm:col-span-2" role="alert">{error}</p>}
 						<div className="modal-action sm:col-span-2">

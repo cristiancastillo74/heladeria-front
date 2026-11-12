@@ -5,11 +5,13 @@ import { jsPDF } from 'jspdf';  // Importar jsPDF correctamente
 import 'jspdf-autotable';       // Importar autoTable
 import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { ExcelIcon, PdfIcon } from "../assets/icons";
+import BranchFilter from '../component/BranchFilter';
 
 
 export default function ProductReport() {
   const [data, setData]                 = useState([]);
   const [totalAmount, setTotalAmount]   = useState(0);
+  const [branchId, setBranchId]         = useState('');
   //const [startDate, setStartDate]       = useState("2025-10-01");
   //const [endDate, setEndDate]           = useState("2025-10-21");
   // Paginación
@@ -38,7 +40,9 @@ export default function ProductReport() {
 
   const fetchReport = async () => {
   try {
-    const res = await axios.get("http://localhost:8080/api/reports/inventory/products");
+    const res = await axios.get("http://localhost:8080/api/reports/inventory/products", {
+      params: { branchId: branchId || undefined }
+    });
     console.log("✅ Datos recibidos:", res.data);
     setData(res.data); // res.data es un array
   } catch (err) {
@@ -49,7 +53,7 @@ export default function ProductReport() {
 
   useEffect(() => {
     fetchReport();
-  }, [currentPage]); // Vuelve a cargar los datos cada vez que cambia la página
+  }, [branchId]);
 
 
 
@@ -122,27 +126,8 @@ const exportToPDF = async () => {
 
     // === Datos ===
     const allData = [];
-    const totalPages = Math.ceil((data.length || 0) / itemsPerPage);
-
-
-    const requests = Array.from({ length: totalPages }, (_, page) =>
-      axios.get("http://localhost:8080/api/reports/inventory/products", {
-        params: { page, size: itemsPerPage },
-      })
-    );
-
-    const responses = await Promise.all(requests);
-
-    responses.forEach((res) => {
-      res.data.forEach((row) => {
-  allData.push([
-    row.product,
-    row.category,
-    row.stock,
-    row.branch,
-  ]);
-});
-
+    rows.forEach((row) => {
+      allData.push([row.product, row.category, row.stock, row.branch]);
     });
 
 
@@ -227,8 +212,8 @@ const exportToPDF = async () => {
 
       {/* Filtro de fechas */}
       <div className="card shadow-lg p-4 mb-6 rounded-xl bg-base-100">
-        <h2 className="text-xl font-semibold text-center mb-4">Obtener inventario de productos</h2>
-        
+        <h2 className="text-xl font-semibold text-center mb-4">Inventario de productos</h2>
+        <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setCurrentPage(1); }} />
       </div>
 
       {/* Tabla de inventario */}
@@ -257,7 +242,7 @@ const exportToPDF = async () => {
 
 
       {/* Paginación */}
-      {data.content && data.content.length > 0 && (
+      {data.length > itemsPerPage && (
         <div className="flex justify-between items-center mt-6">
           <button 
             onClick={goToPreviousPage} 

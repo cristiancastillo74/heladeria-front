@@ -7,6 +7,8 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { PdfIcon } from "../assets/icons";
+import axios from "axios";
+import BranchFilter from '../component/BranchFilter';
 
 export default function BalanceReport() {
 
@@ -24,6 +26,7 @@ export default function BalanceReport() {
 
   const [startDate, setStartDate] = useState(formatForInput(firstDayOfMonth));
   const [endDate, setEndDate] = useState(formatForInput(today));
+  const [branchId, setBranchId] = useState('');
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,14 +38,15 @@ export default function BalanceReport() {
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/reports/balance?startDate=${startDate}&endDate=${endDate}`
-      );
-      const data = await response.json();
-      setReport(data);
+      const response = await axios.get("http://localhost:8080/api/reports/balance", {
+        params: { startDate, endDate, branchId: branchId || undefined }
+      });
+      setReport(response.data);
     } catch (error) {
-      console.error(error);
-      alert("Error al obtener el reporte.");
+      console.error("Error al obtener el reporte:", error.response?.data || error.message);
+      alert(error.response?.status === 403
+        ? "No tienes permisos para consultar este reporte. Debes ingresar como ADMIN_GLOBAL."
+        : "Error al obtener el reporte. Verifica las fechas y la conexión con el servidor.");
     } finally {
       setLoading(false);
     }
@@ -134,6 +138,7 @@ export default function BalanceReport() {
             <label className="text-sm text-gray-600">Fecha fin</label>
             <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           </div>
+          <BranchFilter value={branchId} onChange={setBranchId} />
           <button  className="btn btn-outline btn-primary" onClick={fetchReport} disabled={loading}>
             {loading ? "Cargando..." : "Generar reporte"}
           </button>

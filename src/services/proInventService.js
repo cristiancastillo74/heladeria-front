@@ -13,6 +13,13 @@ export const getProInvents = async () => {
     }
 }
 
+export const getSaleProInvents = async (branchId) => {
+    const response = await axios.get('http://localhost:8080/helados/sale/inventory/products', {
+        params: branchId ? { branchId } : {}
+    });
+    return response.data;
+};
+
 export const saveProInvent = async (ProInvent) => {
     try{
         const response = await axios.post(API_URL, ProInvent);

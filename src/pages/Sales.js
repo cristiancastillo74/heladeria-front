@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { saveSales } from "../services/saleService";
 import { getProducts } from "../services/productService";
 import FlavorModal from "./FlavorModals";
-import { getProInvents } from "../services/proInventService";
+import { getSaleProInvents } from "../services/proInventService";
+import { getUserBranches } from "../services/userService";
+import { useAuth } from "../context/AuthContext";
 
 const Sales = () => {
   const [cart, setCart]                       = useState([]);
@@ -14,10 +16,23 @@ const Sales = () => {
   const [saleInfo, setSaleInfo]               = useState(null);
   const [showFlavorModal, setShowFlavorModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [branches, setBranches] = useState([]);
+  const [selectedBranchId, setSelectedBranchId] = useState('');
+  const { currentUser, currentBranch } = useAuth();
+  const isGlobalAdmin = currentUser?.role === 'ADMIN_GLOBAL';
 
 
 
   
+  useEffect(() => {
+    if (isGlobalAdmin) {
+      getUserBranches().then(setBranches).catch((err) => {
+        setError('No se pudieron cargar las sucursales');
+        console.error(err);
+      });
+    }
+  }, [isGlobalAdmin]);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try{
@@ -35,8 +50,12 @@ const Sales = () => {
 
   useEffect(() => {
     const fetchInvProducts = async () => {
+      if (isGlobalAdmin && !selectedBranchId) {
+        setInvProducts([]);
+        return;
+      }
       try{
-        const dat = await getProInvents();
+        const dat = await getSaleProInvents(isGlobalAdmin ? Number(selectedBranchId) : undefined);
         const data = dat.filter(p => p.stock > 0);
         setInvProducts(data);
       }catch(err){
@@ -47,9 +66,13 @@ const Sales = () => {
       }
     };
     fetchInvProducts();
-  },[]);
+  },[isGlobalAdmin, selectedBranchId]);
 
   const addToCart = (product) => {
+    if (isGlobalAdmin && !selectedBranchId) {
+      alert('Selecciona la sucursal antes de agregar productos a la venta.');
+      return;
+    }
     let sabores = "-";
     if (product.isIceCream) {
       setSelectedProduct(product);
@@ -81,6 +104,10 @@ const Sales = () => {
 
   const handleSaveSale = async () => {
     try {
+      if (isGlobalAdmin && !selectedBranchId) {
+        alert('Selecciona la sucursal para esta venta.');
+        return;
+      }
       const payment = prompt("Ingrese el monto que pagó el cliente:");
       const paymentFloat = parseFloat(payment);
 
@@ -110,10 +137,12 @@ const Sales = () => {
       };
 
 
-      const userId = 1; // ⚠️ reemplazar con el usuario logueado
-      const branchId = 1; // ⚠️ reemplazar con la sucursal seleccionada
-
-      const response = await saveSales(salePayload, userId, branchId);
+      const branchId = isGlobalAdmin ? Number(selectedBranchId) : currentBranch?.id;
+      if (!branchId) {
+        alert('Tu usuario no tiene una sucursal asignada.');
+        return;
+      }
+      const response = await saveSales(salePayload, isGlobalAdmin ? branchId : undefined);
       console.log("Venta guardada:", response);
 
       setSaleInfo({
@@ -122,6 +151,7 @@ const Sales = () => {
         change: response.changeAmount || (paymentFloat - calculateTotal()),
       });
       setCart([]); // limpiar carrito
+      if (isGlobalAdmin) setSelectedBranchId('');
       setShowModal(true);
     } catch (err) {
       console.error(err);
@@ -135,6 +165,22 @@ const Sales = () => {
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Pantalla de Ventas</h1>
+
+      {isGlobalAdmin && <label className="form-control mb-6 max-w-sm">
+        <span className="label-text mb-1">Sucursal de la venta</span>
+        <select
+          className="select select-bordered"
+          required
+          value={selectedBranchId}
+          onChange={(event) => {
+            setSelectedBranchId(event.target.value);
+            setCart([]);
+          }}
+        >
+          <option value="">Selecciona una sucursal</option>
+          {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.name}</option>)}
+        </select>
+      </label>}
 
       {/* Botones de productos tipo Helados*/}
       <div className="flex gap-2 flex-wrap mb-6">
@@ -237,6 +283,8 @@ const Sales = () => {
       onClose={() => setShowFlavorModal(false)}
       onConfirm={handleConfirmFlavors}
       product={selectedProduct}
+      branchId={isGlobalAdmin ? Number(selectedBranchId) || undefined : undefined}
+      isGlobalAdmin={isGlobalAdmin}
     />
 
     </div>

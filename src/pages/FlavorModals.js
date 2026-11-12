@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { getCyInventDisponiblesCondicional } from "../services/cyInventService";
-import { getProInvents } from "../services/proInventService";
+import { getSaleCyInventDisponibles } from "../services/cyInventService";
+import { getSaleProInvents } from "../services/proInventService";
 
 
-const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
+const FlavorModal = ({ isOpen, onClose, onConfirm, product, branchId, isGlobalAdmin = false }) => {
   const [cylinders, setCylinders]         = useState([]);
   const [selections, setSelections]       = useState([]);
   const [proInvents, setProInvents]       = useState([]);
@@ -17,7 +17,7 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
     if (isOpen) {
       const fetchCyInvents = async () => {
         try {
-          const data = await getCyInventDisponiblesCondicional();
+          const data = await getSaleCyInventDisponibles(branchId);
           //console.log('Cilindros disponibles:');
           //console.log(data);
           setCylinders(data);
@@ -28,12 +28,13 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
       };
       fetchCyInvents();
     }
-  }, [isOpen]);
+  }, [isOpen, branchId]);
 
   useEffect(() => {
+    if (!isOpen || (isGlobalAdmin && !branchId)) return;
     const fetchProInvents = async () =>{
         try{
-            const data = await getProInvents();
+            const data = await getSaleProInvents(branchId);
             const iceCreamCodes = ['BRQ', 'CON', 'V5', 'V8'];
             const filteredData = data.filter(p => iceCreamCodes.includes(p.product?.code) && p.stock > 0);
             console.log(filteredData);
@@ -43,7 +44,7 @@ const FlavorModal = ({ isOpen, onClose, onConfirm, product }) => {
         }
     };
     fetchProInvents();
-}, []);
+}, [isOpen, branchId, isGlobalAdmin]);
 
   const handleFlavorChange = (index, cylinderId, balls = 1) => {
   const newSelections = [...selections];

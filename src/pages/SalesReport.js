@@ -5,6 +5,7 @@ import { jsPDF } from 'jspdf';  // Importar jsPDF correctamente
 import 'jspdf-autotable';       // Importar autoTable
 import logo from "../assets/imagenes/logo.jpeg"; // ✅ tu import
 import { ExcelIcon, PdfIcon } from "../assets/icons";
+import BranchFilter from '../component/BranchFilter';
 
 
 export default function SalesReport() {
@@ -24,6 +25,7 @@ export default function SalesReport() {
   const [totalAmount, setTotalAmount] = useState(0);
   const [startDate, setStartDate] = useState(formatForInput(firstDayOfMonth));
   const [endDate, setEndDate] = useState(formatForInput(today));
+  const [branchId, setBranchId] = useState('');
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,6 +54,7 @@ export default function SalesReport() {
         params: { 
           startDate, 
           endDate,
+          branchId: branchId || undefined,
           page: currentPage - 1, // 'page' en backend comienza desde 0
           size: itemsPerPage 
         },
@@ -64,6 +67,7 @@ export default function SalesReport() {
         params: {
           startDate: `${startDate}T00:00:00`,
           endDate: `${endDate}T23:59:59`,
+          branchId: branchId || undefined,
         },
       });
       setTotalAmount(totalRes.data);
@@ -74,7 +78,7 @@ export default function SalesReport() {
 
   useEffect(() => {
     fetchReport();
-  }, [currentPage]); // Vuelve a cargar los datos cada vez que cambia la página
+  }, [currentPage, branchId]);
 
 
 
@@ -145,7 +149,7 @@ const exportToPDF = async () => {
 
     const requests = Array.from({ length: totalPages }, (_, page) =>
       axios.get("http://localhost:8080/api/reports/sales", {
-        params: { startDate, endDate, page, size: itemsPerPage },
+        params: { startDate, endDate, branchId: branchId || undefined, page, size: itemsPerPage },
       })
     );
 
@@ -221,6 +225,7 @@ const exportToPDF = async () => {
       params: {
         startDate,
         endDate,
+        branchId: branchId || undefined,
         page,
         size: itemsPerPage,
       }
@@ -266,6 +271,7 @@ const exportToPDF = async () => {
             onChange={(e) => setStartDate(e.target.value)}
             className="input input-bordered w-full rounded-lg border-2 border-primary focus:ring-2 focus:ring-primary transition-all"
           />
+          <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setCurrentPage(1); }} />
           <input
             type="date"
             value={endDate}

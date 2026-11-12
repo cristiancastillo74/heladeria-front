@@ -17,6 +17,7 @@ import CylinderReport from './pages/CyliderReport';
 import Login from './pages/Login';
 import Users from './pages/Users';
 import AdminSettings from './pages/AdminSettings';
+import PurchaseOrderReport from './pages/PurchaseOrderReport';
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
@@ -42,10 +43,37 @@ function AdminUsersRoute() {
   return <Users />;
 }
 
+function CatalogManagementRoute({ children }) {
+  const { currentUser } = useAuth();
+  if (!['ADMIN_GLOBAL', 'ADMIN_BRANCH'].includes(currentUser?.role)) {
+    return <Navigate to="/sales" replace />;
+  }
+  return children;
+}
+
 function GlobalAdminSettingsRoute() {
   const { currentUser } = useAuth();
   if (currentUser?.role !== 'ADMIN_GLOBAL') return <Navigate to="/" replace />;
   return <AdminSettings />;
+}
+
+function GlobalDashboardRoute() {
+  const { currentUser } = useAuth();
+  if (currentUser?.role !== 'ADMIN_GLOBAL') return <Navigate to="/sales" replace />;
+  return <Dashboard />;
+}
+
+function GlobalPurchaseOrderRoute({ type }) {
+  const { currentUser } = useAuth();
+  if (currentUser?.role !== 'ADMIN_GLOBAL') return <Navigate to="/sales" replace />;
+  return <PurchaseOrderReport type={type} />;
+}
+
+function InventoryRoute({ children }) {
+  const { currentUser } = useAuth();
+  const mayView = ['ADMIN_GLOBAL', 'ADMIN_BRANCH'].includes(currentUser?.role)
+    || (currentUser?.role === 'EMPLOYEE' && currentUser?.canViewInventory);
+  return mayView ? children : <Navigate to="/sales" replace />;
 }
 
 function App() {
@@ -60,16 +88,18 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginRoute />} />
           <Route element={<ProtectedLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<GlobalDashboardRoute />} />
             <Route path="/reports/sales" element={<SalesReport />} />
             <Route path="/reports/balance" element={<BalanceReport />} />
             <Route path="/reports/products" element={<ProductReport />} />
             <Route path="/reports/cylinders" element={<CylinderReport />} />
+            <Route path="/reports/orders/products" element={<GlobalPurchaseOrderRoute type="PRODUCT" />} />
+            <Route path="/reports/orders/ice-creams" element={<GlobalPurchaseOrderRoute type="ICE_CREAM" />} />
             <Route path="/expenses" element={<Expenses />} />
-            <Route path="/cylinder" element={<Cylinders />} />
-            <Route path="/product" element={<Products />} />
-            <Route path="/cyInvent" element={<CyInvent />} />
-            <Route path="/proInvent" element={<ProInvent />} />
+            <Route path="/cylinder" element={<CatalogManagementRoute><Cylinders /></CatalogManagementRoute>} />
+            <Route path="/product" element={<CatalogManagementRoute><Products /></CatalogManagementRoute>} />
+            <Route path="/cyInvent" element={<InventoryRoute><CyInvent /></InventoryRoute>} />
+            <Route path="/proInvent" element={<InventoryRoute><ProInvent /></InventoryRoute>} />
             <Route path="/sales" element={<Sales />} />
             <Route path="/users" element={<AdminUsersRoute />} />
             <Route path="/admin/configuration" element={<GlobalAdminSettingsRoute />} />

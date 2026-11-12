@@ -17,3 +17,9 @@ export const cylinderTypeAdminService = createResource('cylinder-types');
 
 export const getProductStatuses = async () => (await axios.get(`${CATALOG_URL}/product-statuses`)).data;
 export const getCylinderTypes = async () => (await axios.get(`${CATALOG_URL}/cylinder-types`)).data;
+export const getProductInventoryThresholds = async () => (await axios.get(`${ADMIN_URL}/inventory-thresholds/products`)).data;
+export const updateProductInventoryThreshold = async (id, threshold) =>
+  (await axios.put(`${ADMIN_URL}/inventory-thresholds/products/${id}`, { threshold })).data;
+export const getCylinderInventoryThresholds = async () => (await axios.get(`${ADMIN_URL}/inventory-thresholds/cylinders`)).data;
+export const updateCylinderInventoryThreshold = async (id, threshold) =>
+  (await axios.put(`${ADMIN_URL}/inventory-thresholds/cylinders/${id}`, { threshold })).data;
